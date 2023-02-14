@@ -5,15 +5,12 @@ new Schema({
     first_name: String,
     last_name: String,
     email: String,
+    password: String,
     phone_number: String,
-    recruitment_year: Number,
     recruitment_class: String,
     city: String,
-    occupation: {
-        industry: String,
-        role: String
-    },
-    volunteering: Boolean,
+    occupation: String,
+    volunteering: String,
     linkedin_link: String,
     facebook_link: String,
     github_link: String,
