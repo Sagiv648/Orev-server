@@ -10,8 +10,11 @@ import jwt from 'jsonwebtoken'
 import { exit } from "process";
 import users from './Models/User.js'
 import { auth } from "./Controllers/Auth/auth.js";
+import { privilegedAuth } from "./Controllers/Admin/adminAuth.js";
 import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
+import fallenRouter from "./Controllers/Fallen/fallen.js";
+import adminRouter from "./Controllers/Admin/admin.js";
 const app = express()
 dotenv.config()
 dbContext()
@@ -24,11 +27,8 @@ app.use(bodyParser.urlencoded({extended: false}))
 
 app.use('/profile',auth,profileRouter)
 app.use('/unitcmdrs',auth, unitCmdrsRouter)
-
-app.get('/',(req,res) => {
-    
-    res.status(200).json({msg: `welcome`})
-})
+app.use('/fallen', auth, fallenRouter)
+app.use('/admin', auth,privilegedAuth, adminRouter)
 app.post('/login', async (req,res) => {
     //authorization
     const email = req.body.email;
@@ -45,8 +45,14 @@ app.post('/login', async (req,res) => {
     const toTokenize = {
 
         id: user.id,
+        privilege: {
+            privilege_ring: user.privilege.privilege_ring,
+            privilege_id: user.privilege.privilege_id
+        },
+        privileged_token: false,
         
     }
+    console.log(toTokenize);
     const token = jwt.sign(toTokenize,process.env.SECRET)
     res.status(200).json({token: token})
 })
@@ -65,6 +71,11 @@ app.post('/register', async (req,res) => {
                                         last_name: "N/A",
                                         email: email,
                                         password: password,
+                                        privilege: {
+                                            privilege_ring: 2,
+                                            privilege_id: "",
+                                            privilege_password: ""
+                                        },
                                         phone_number: "N/A",
                                         recruitment_class: "N/A",
                                         city: "N/A",
@@ -77,7 +88,12 @@ app.post('/register', async (req,res) => {
                                         picture: ""})
     if(created){
         const toTokenize = {
-        id: created.id
+        id: created.id,
+        privilege: {
+            privilege_ring: created.privilege.privilege_ring,
+            privilege_id: created.privilege.privilege_id
+        },
+        privileged_token: false
     }
     const token = jwt.sign(toTokenize,process.env.SECRET)
     res.status(201).json({token: token})
@@ -86,6 +102,11 @@ app.post('/register', async (req,res) => {
         res.status(500).json({Error: "Server couldn't create resource."})
     }
 
+})
+
+
+app.use((req,res) => {
+    return res.status(404).json({Error: "Resource not found"})
 })
 
 mongoose.connection.once('open', () => {

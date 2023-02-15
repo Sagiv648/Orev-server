@@ -1,5 +1,6 @@
 import  express  from "express";
 import users from "../../Models/User.js";
+import { documentToObject } from "../../utils.js";
 const profileRouter = express.Router()
 
 //TODO: GET profile
@@ -8,8 +9,7 @@ profileRouter.get('/',async (req,res) => {
     const id = req.data.id;
     const details = await users.findById(id).exec()
     
-    const output = Object.keys(details.toObject()).filter(x => x != 'password' && x != '_id' && x != '__v' )
-    .reduce((o,key) => ({...o, [key] : details.toObject()[key]}),{})
+    const output = documentToObject(details)
 
     return res.status(200).json(output)
 }) 
@@ -25,8 +25,7 @@ profileRouter.put('/', async (req,res) => {
     if(!updated)
     return res.status(500).json({error: "Server couldn't update"})
 
-    const output = Object.keys(updated.toObject()).filter(x => x != 'password' && x != '_id' && x != '__v' )
-    .reduce((o,key) => ({...o, [key] : updated.toObject()[key]}),{})
+    const output = documentToObject(updated)
 
     return res.status(200).json(output)
 })
