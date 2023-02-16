@@ -1,14 +1,13 @@
 import fs from 'fs'
 import { exit } from 'process';
-import * as url from 'url';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+import { __dirname } from '../utils.js';
 
 
 let key;
 let cert;
 try {
-   key = fs.readFileSync(`${__dirname}client-key.pem`)
-   cert = fs.readFileSync(`${__dirname}client-cert.pem`)
+   key = fs.readFileSync(`${__dirname}\\config\\client-key.pem`)
+   cert = fs.readFileSync(`${__dirname}\\config\\client-cert.pem`)
 } catch (err) {
     console.log(err.message);
     exit()

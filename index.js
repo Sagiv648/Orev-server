@@ -17,8 +17,9 @@ import fallenRouter from "./Controllers/Fallen/fallen.js";
 import adminRouter from "./Controllers/Admin/admin.js";
 import Event from "./Models/Event.js";
 import cron from 'node-cron'
-
-
+import { spawn } from "child_process";
+import { __dirname } from "./utils.js";
+import usersRouter from "./Controllers/Users/users.js";
 
 const app = express()
 dotenv.config()
@@ -27,6 +28,7 @@ dbContext()
 
 //authorization: Bearer [token]
 cron.schedule(' 0 0 * * *', async () => {
+    
     try {
         const allEvents = await Event.find({})
         allEvents.map(x => (Date.parse(x.date) - Date.now()) <= 0 && x.delete())
@@ -37,6 +39,15 @@ cron.schedule(' 0 0 * * *', async () => {
     
     
 })
+
+// cron.schedule(' * * * * *', async () => {
+//    const python = spawn('python',[`${__dirname}pythonscripttest.py`, "hello from node js"])
+//    console.log("every minute");
+//     python.stdout.on("data", (data) => {
+//         console.log("from python " + data.length);
+//     })
+// })
+
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
@@ -44,6 +55,7 @@ app.use('/profile',auth,profileRouter)
 app.use('/unitcmdrs',auth, unitCmdrsRouter)
 app.use('/fallen', auth, fallenRouter)
 app.use('/admin', auth,privilegedAuth, adminRouter)
+app.use('/users', auth, usersRouter)
 app.post('/login', async (req,res) => {
     //authorization
     const email = req.body.email;

@@ -8,5 +8,7 @@ new Schema({
         city: String,
         address: String
     },
-    time: String
+    time: String,
+    description: String,
+    whatsapp_msg: Boolean
 }))

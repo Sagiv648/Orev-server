@@ -1,19 +1,10 @@
 
 export const privilegedAuth = (req,res,next) => {
 
-    // req.data =>
-                    // id: user.id,
-                    // privilege: {
-                    //     privilege_ring: user.privilege.privilege_ring,
-                    //     privilege_id: user.privilege.privilege_id
-                    // }
-    //console.log(req.headers.authorization);
-    
     const test = req.data
     console.log("admin auth");
     if(test.privilege_ring == 2)
         return res.status(403).json({Error: "Access denied"})
-    console.log("\n");
     next()
 
 

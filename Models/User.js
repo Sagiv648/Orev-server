@@ -19,6 +19,7 @@ new Schema({
     city: String,
     occupation: String,
     volunteering: String,
+    private_profile: Boolean,
     linkedin_link: String,
     facebook_link: String,
     github_link: String,

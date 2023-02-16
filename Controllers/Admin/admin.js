@@ -92,7 +92,7 @@ adminRouter.delete('/removeevents', privilegeRingOneAuth, async (req,res) => {
 
 
 
-//TODO: Create a job
+//TODO: Handle addjob route
 adminRouter.post('/addjob', privilegeRingOneAuth, (req,res) => {
 
     console.log("addjob");
@@ -100,20 +100,15 @@ adminRouter.post('/addjob', privilegeRingOneAuth, (req,res) => {
 })
 
 
-//TODO: Delete a job
+//TODO: Handle removejobs route
 adminRouter.delete('/removejobs', privilegeRingOneAuth, (req,res) => {
-
-    //Query strings:
-    //Id, Header
-    //Removes the jobs with the specified queries, the more queries the more precise the delete
-
 
     console.log("removejob");
     return res.status(200).json({privilege: "removejob"})
 })
 
 
-//TODO: Update user with privilege
+//TODO: Handle updatepriv route
 adminRouter.put('/updatepriv', privilegeRingZeroAuth, (req,res) => {
 
     console.log("updatepriv");
@@ -121,7 +116,7 @@ adminRouter.put('/updatepriv', privilegeRingZeroAuth, (req,res) => {
 })
 
 
-//TODO: Create unit cmdr
+//TODO: Handle addunitcmdr route
 adminRouter.post('/addunitcmdr', privilegeRingZeroAuth, (req,res) => {
 
     console.log("addunitcmdr");
@@ -129,17 +124,15 @@ adminRouter.post('/addunitcmdr', privilegeRingZeroAuth, (req,res) => {
 })
 
 
-//TODO: Delete unit cmdr
+//TODO: Handle removeunitcmdr route
 adminRouter.delete('/removeunitcmdr', privilegeRingZeroAuth, (req,res) => {
-    //Query strings:
-    //Id
 
     console.log("removeunitcmdr");
     return res.status(200).json({privilege: "removeunitcmdr route"})
 })
 
 
-//TODO: Create fallen
+//TODO: Handle addfallen route
 adminRouter.post('/addfallen', privilegeRingZeroAuth, (req,res) => {
 
     console.log("addfallen");
@@ -147,10 +140,8 @@ adminRouter.post('/addfallen', privilegeRingZeroAuth, (req,res) => {
 })
 
 
-//TODO: Delete fallen
+//TODO: Handle removefallen route
 adminRouter.delete('/removefallen', privilegeRingZeroAuth, (req,res) => {
-    //Query strings:
-    //Id
 
     console.log("removefallen");
     return res.status(200).json({privilege: "removefallen route"})
