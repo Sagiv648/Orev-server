@@ -3,7 +3,9 @@ import User from '../../Models/User.js'
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
 import ms from 'ms'
+import Event from './../../Models/Event.js'
 import { privilegeRingOneAuth,privilegeRingZeroAuth } from './adminAuth.js'
+import { documentToObject } from '../../utils.js'
 env.config()
 const adminRouter = express.Router()
 
@@ -38,22 +40,56 @@ adminRouter.post('/login', async (req,res) => {
         res.status(403).json({Error: "Access denied"})
 })
 
-
 //TODO: Create an event
-adminRouter.post('/addevent', privilegeRingOneAuth, (req,res) => {
+adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
 
+    const body = req.body
     
-    console.log("addevent");
-    return res.status(201).json({privilege: "addevent route"})
+    const exists = await Event.findOne({event_header: body.event_header})
+    if(exists){
+        res.status(400).json({C_Error: "Name taken"})
+    }
+    else{
+        const created = await Event.create(body)
+        if(created){
+
+            //TODO: Potentially send every user a whatsup message
+
+            res.status(201).json(documentToObject(created))
+        }
+        else{
+            res.status(500).json({S_Error: "Couldn't create an event"})
+        }
+    }
+    
 })
 
 
 //TODO: Delete event
-adminRouter.delete('/removeevent', privilegeRingOneAuth, (req,res) => {
-
-    console.log("removeevent");
-    return res.status(200).json({privilege: "removeevent route"})
+adminRouter.delete('/removeevents', privilegeRingOneAuth, async (req,res) => {
+    
+    //Query strings:
+    //Id,Header
+    const query = req.query
+    const defined = Object.keys(query).reduce((o,key) => query[key].length > 0 ? {...o, [key]: query[key]} : o,{})
+    
+    if(defined){    
+        const deleted = await Event.find(defined)
+        if(deleted.length >= 1){
+            deleted.map(x => x.delete())
+            res.status(200).json({Deleted: deleted.map(x => documentToObject(x))})
+        }
+        else{
+            res.status(400).json({C_Error: "Not found"})
+        }
+    }
+    else{
+        return res.status(400).json({C_Error: "No specification"})
+    }
+    
+    
 })
+
 
 
 //TODO: Create a job
@@ -65,7 +101,12 @@ adminRouter.post('/addjob', privilegeRingOneAuth, (req,res) => {
 
 
 //TODO: Delete a job
-adminRouter.delete('/removejob', privilegeRingOneAuth, (req,res) => {
+adminRouter.delete('/removejobs', privilegeRingOneAuth, (req,res) => {
+
+    //Query strings:
+    //Id, Header
+    //Removes the jobs with the specified queries, the more queries the more precise the delete
+
 
     console.log("removejob");
     return res.status(200).json({privilege: "removejob"})
@@ -89,7 +130,9 @@ adminRouter.post('/addunitcmdr', privilegeRingZeroAuth, (req,res) => {
 
 
 //TODO: Delete unit cmdr
-adminRouter.post('/removeunitcmdr', privilegeRingZeroAuth, (req,res) => {
+adminRouter.delete('/removeunitcmdr', privilegeRingZeroAuth, (req,res) => {
+    //Query strings:
+    //Id
 
     console.log("removeunitcmdr");
     return res.status(200).json({privilege: "removeunitcmdr route"})
@@ -106,6 +149,8 @@ adminRouter.post('/addfallen', privilegeRingZeroAuth, (req,res) => {
 
 //TODO: Delete fallen
 adminRouter.delete('/removefallen', privilegeRingZeroAuth, (req,res) => {
+    //Query strings:
+    //Id
 
     console.log("removefallen");
     return res.status(200).json({privilege: "removefallen route"})

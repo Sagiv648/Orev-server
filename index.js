@@ -15,13 +15,28 @@ import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
 import fallenRouter from "./Controllers/Fallen/fallen.js";
 import adminRouter from "./Controllers/Admin/admin.js";
+import Event from "./Models/Event.js";
+import cron from 'node-cron'
+
+
+
 const app = express()
 dotenv.config()
 dbContext()
 
 
 //authorization: Bearer [token]
-
+cron.schedule(' 0 0 * * *', async () => {
+    try {
+        const allEvents = await Event.find({})
+        allEvents.map(x => (Date.parse(x.date) - Date.now()) <= 0 && x.delete())
+        console.log("Events was cleared");
+    } catch (error) {
+        console.log("Error:\n" + error.message);
+    }
+    
+    
+})
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
@@ -118,6 +133,7 @@ mongoose.connection.once('open', () => {
         console.log(`Error at:\n${error.message}`);
         exit()
     }
+    
 })
 
 mongoose.connection.on('error', (err) => {

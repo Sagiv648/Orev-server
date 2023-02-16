@@ -13,7 +13,6 @@ export const privilegedAuth = (req,res,next) => {
     console.log("admin auth");
     if(test.privilege_ring == 2)
         return res.status(403).json({Error: "Access denied"})
-    console.log(test);
     console.log("\n");
     next()
 
