@@ -3,7 +3,7 @@ import users from "../../Models/User.js";
 import { documentToObject } from "../../utils.js";
 const profileRouter = express.Router()
 
-//TODO: GET profile
+//\TODO: GET profile
 profileRouter.get('/',async (req,res) => {
 
     const id = req.data.id;
@@ -16,7 +16,7 @@ profileRouter.get('/',async (req,res) => {
 
 
 
-//TODO: PUT profile (edit profile option)
+//\TODO: PUT profile (edit profile option)
 profileRouter.put('/', async (req,res) => {
     const id = req.data.id
     const body = req.body

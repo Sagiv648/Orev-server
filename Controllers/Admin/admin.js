@@ -40,7 +40,7 @@ adminRouter.post('/login', async (req,res) => {
         res.status(403).json({Error: "Access denied"})
 })
 
-//TODO: Create an event
+//\TODO: Create an event
 adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
 
     const body = req.body
@@ -53,8 +53,6 @@ adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
         const created = await Event.create(body)
         if(created){
 
-            //TODO: Potentially send every user a whatsup message
-
             res.status(201).json(documentToObject(created))
         }
         else{
@@ -65,7 +63,7 @@ adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
 })
 
 
-//TODO: Delete event
+//\TODO: Delete event
 adminRouter.delete('/removeevents', privilegeRingOneAuth, async (req,res) => {
     
     //Query strings:

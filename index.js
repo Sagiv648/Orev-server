@@ -85,7 +85,6 @@ app.post('/login', async (req,res) => {
 })
 
 
-//TODO: Write to firebase aswell
 app.post('/register', async (req,res) => {
     const email = req.body.email;
     const password = req.body.password

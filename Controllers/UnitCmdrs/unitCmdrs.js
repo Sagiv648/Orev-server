@@ -3,7 +3,7 @@ import unitCmdrs from './../../Models/UnitCmdr.js'
 import { documentToObject } from "../../utils.js";
 const unitCmdrsRouter = express.Router()
 
-//TODO: GET all unit cmdrs
+//\TODO: GET all unit cmdrs
 unitCmdrsRouter.get('/', async (req,res) => {
     
     const allCmdr = await unitCmdrs.find({})
@@ -19,6 +19,5 @@ unitCmdrsRouter.get('/', async (req,res) => {
 })
 
 
-//TODO-ADMIN: POST all unit cmdrs
 
 export default unitCmdrsRouter
