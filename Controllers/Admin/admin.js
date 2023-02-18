@@ -6,6 +6,8 @@ import ms from 'ms'
 import Event from './../../Models/Event.js'
 import { privilegeRingOneAuth,privilegeRingZeroAuth } from './adminAuth.js'
 import { documentToObject } from '../../utils.js'
+import childProcess from 'child_process'
+import { __dirname } from '../../utils.js'
 env.config()
 const adminRouter = express.Router()
 
@@ -53,6 +55,8 @@ adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
         const created = await Event.create(body)
         if(created){
 
+            const child = childProcess.spawn('node', [`${__dirname}testprocess.js`])
+            
             res.status(201).json(documentToObject(created))
         }
         else{
@@ -89,6 +93,14 @@ adminRouter.delete('/removeevents', privilegeRingOneAuth, async (req,res) => {
 })
 
 
+//TODO: Handle updatepriv route
+adminRouter.put('/updatepriv', privilegeRingZeroAuth, (req,res) => {
+
+
+    console.log("updatepriv");
+    return res.status(200).json({privilege: "updatepriv route"})
+})
+
 
 //TODO: Handle addjob route
 adminRouter.post('/addjob', privilegeRingOneAuth, (req,res) => {
@@ -103,14 +115,6 @@ adminRouter.delete('/removejobs', privilegeRingOneAuth, (req,res) => {
 
     console.log("removejob");
     return res.status(200).json({privilege: "removejob"})
-})
-
-
-//TODO: Handle updatepriv route
-adminRouter.put('/updatepriv', privilegeRingZeroAuth, (req,res) => {
-
-    console.log("updatepriv");
-    return res.status(200).json({privilege: "updatepriv route"})
 })
 
 

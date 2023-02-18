@@ -15,11 +15,13 @@ import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
 import fallenRouter from "./Controllers/Fallen/fallen.js";
 import adminRouter from "./Controllers/Admin/admin.js";
+import usersRouter from "./Controllers/Users/users.js";
+import eventsRouter from "./Controllers/Events/event.js";
 import Event from "./Models/Event.js";
 import cron from 'node-cron'
 import { spawn } from "child_process";
 import { __dirname } from "./utils.js";
-import usersRouter from "./Controllers/Users/users.js";
+import child from 'child_process'
 
 const app = express()
 dotenv.config()
@@ -54,8 +56,10 @@ app.use(bodyParser.urlencoded({extended: false}))
 app.use('/profile',auth,profileRouter)
 app.use('/unitcmdrs',auth, unitCmdrsRouter)
 app.use('/fallen', auth, fallenRouter)
-app.use('/admin', auth,privilegedAuth, adminRouter)
 app.use('/users', auth, usersRouter)
+app.use('/events', auth, eventsRouter)
+
+app.use('/admin', auth,privilegedAuth, adminRouter)
 app.post('/login', async (req,res) => {
     //authorization
     const email = req.body.email;
@@ -79,7 +83,6 @@ app.post('/login', async (req,res) => {
         privileged_token: false,
         
     }
-    console.log(toTokenize);
     const token = jwt.sign(toTokenize,process.env.SECRET)
     res.status(200).json({token: token})
 })
@@ -93,25 +96,10 @@ app.post('/register', async (req,res) => {
     if(user)
     return res.status(400).json({error: "exists"})
 
-    const created = await users.create({first_name: "N/A",
-                                        last_name: "N/A",
+    const created = await users.create({
                                         email: email,
                                         password: password,
-                                        privilege: {
-                                            privilege_ring: 2,
-                                            privilege_id: "",
-                                            privilege_password: ""
-                                        },
-                                        phone_number: "N/A",
-                                        recruitment_class: "N/A",
-                                        city: "N/A",
-                                        occupation: "N/A",
-                                        volunteering: "N/A",
-                                        linkedin_link: "N/A",
-                                        facebook_link: "N/A",
-                                        github_link: "N/A",
-                                        instagram_link: "N/A",
-                                        picture: ""})
+                                        })
     if(created){
         const toTokenize = {
         id: created.id,

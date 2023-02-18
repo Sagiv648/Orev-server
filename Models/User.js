@@ -2,8 +2,14 @@ import {Schema, model} from "mongoose";
 
 export default model("Users", 
 new Schema({
-    first_name: String,
-    last_name: String,
+    first_name: {
+        type: String,
+        default: ""
+    },
+    last_name: {
+        type: String,
+        default: ""
+    },
     email: String,
     password: String,
     privilege: {
@@ -11,18 +17,57 @@ new Schema({
             type: Number,
             default: 2
         },
-        privilege_id: String,
-        privilege_password: String
+        privilege_id: {
+            type: String,
+            default: ""
+        },
+        privilege_password: {
+            type: String,
+            default: ""
+        }
     },
-    phone_number: String,
-    recruitment_class: String,
-    city: String,
-    occupation: String,
-    volunteering: String,
-    private_profile: Boolean,
-    linkedin_link: String,
-    facebook_link: String,
-    github_link: String,
-    instagram_link: String,
-    picture: String
+    phone_number: {
+        type: String,
+        default: ""
+    },
+    recruitment_class: {
+        type: String,
+        default: ""
+    },
+    city: {
+        type: String,
+        default: ""
+    },
+    occupation: {
+        type: String,
+        default: ""
+    },
+    volunteering: {
+        type: Boolean,
+        default: false
+    },
+    private_profile: {
+        type: Boolean,
+        default: false
+    },
+    linkedin_link: {
+        type: String,
+        default: ""
+    },
+    facebook_link: {
+        type: String,
+        default: ""
+    },
+    github_link: {
+        type: String,
+        default: ""
+    },
+    instagram_link: {
+        type: String,
+        default: ""
+    },
+    picture: {
+        type: String,
+        default: ""
+    }
 }))
