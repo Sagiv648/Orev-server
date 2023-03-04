@@ -12,6 +12,10 @@ new Schema({
     },
     email: String,
     password: String,
+    mentor: {
+        type: Boolean,
+        default: false
+    },
     privilege: {
         privilege_ring: {
             type: Number,
