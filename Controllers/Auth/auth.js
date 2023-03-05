@@ -15,19 +15,8 @@ export const auth = (req,res,next) => {
         jwt.verify(token, process.env.SECRET, (err,payload) => {
             if(err)
             {
-                jwt.verify(token, process.env.ADMIN_SECRET, (err, payload) => {
-                    
-                    if(err) return res.status(403).json({error: "unauthorized"})
+                return res.status(403).json({error: "unauthorized"})
 
-                    else{
-                        console.log("normal auth - admin payload");
-                        req.data = payload
-                        next()
-                    }
-                    
-                })
-
-                //
             }
             else{
                 console.log("normal auth - normal payload");

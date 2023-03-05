@@ -19,14 +19,12 @@ import usersRouter from "./Controllers/Users/users.js";
 import eventsRouter from "./Controllers/Events/event.js";
 import Event from "./Models/Event.js";
 import cron from 'node-cron'
-import { spawn } from "child_process";
 import { __dirname } from "./utils.js";
-import child from 'child_process'
+
 
 const app = express()
 dotenv.config()
 dbContext()
-
 
 //authorization: Bearer [token]
 cron.schedule(' 0 0 * * *', async () => {
