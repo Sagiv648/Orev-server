@@ -29,14 +29,15 @@ profileRouter.post('/upload-avatar', (req,res,next) => {
 profileRouter.put('/', fileUpload.single('avatar') ,async (req,res) => {
     const id = req.data.id
     const body = req.body
+    
+    const toUpdate = {...body, avatar: req.file.path}
+    const updated = await users.findOneAndUpdate({_id: id},toUpdate,{returnDocument: "after"})
+     if(!updated)
+     return res.status(500).json({error: "Server couldn't update"})
 
-    // const updated = await users.findOneAndUpdate({_id: id},body,{returnDocument: "after"})
-    // if(!updated)
-    // return res.status(500).json({error: "Server couldn't update"})
+     const output = documentToObject(updated)
 
-    // const output = documentToObject(updated)
-
-    return res.status(200).json(body)
+    return res.status(200).json(output)
 })
 
 

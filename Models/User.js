@@ -70,7 +70,7 @@ new Schema({
         type: String,
         default: ""
     },
-    picture: {
+    avatar: {
         type: String,
         default: ""
     }

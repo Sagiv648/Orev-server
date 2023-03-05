@@ -26,6 +26,36 @@ const app = express()
 dotenv.config()
 dbContext()
 
+
+
+ app.use('/files',  (req,res, next) => {
+
+    // const {access } = req.query;
+    // if(!access)
+    // return res.status(401).json({access: "denied"})
+    //     const payload = jwt.verify(access, process.env.SECRET, (err, payload) => {
+    //         if(err)
+    //         return res.status(401).json({access: "denied"})
+    //         else{
+    //             const imageRequest = req.path.split('/')[2]
+    //             const id = payload.id;
+    
+    //     if(imageRequest.startsWith(id)){
+    //         console.log("it gets here?");
+    //         next()
+    //     }
+                
+    //     else{
+    //         console.log("noooo");
+    //         return res.status(401).json({access: "denied"})
+    //     }
+    //         }
+    //     })
+        
+        next()
+        },
+
+ express.static('files'))
 //authorization: Bearer [token]
 cron.schedule(' 0 0 * * *', async () => {
     

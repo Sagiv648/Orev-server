@@ -4,7 +4,7 @@ import { documentToObject } from '../../utils.js'
 
 const usersRouter = express.Router()
 
-usersRouter.get('/', async (req,res) => {
+usersRouter.get('/', async(req,res) => {
     const {id} = req.query;
     if(id)
     { 
