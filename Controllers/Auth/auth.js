@@ -47,3 +47,16 @@ export const adminAuth = (req,res,next) => {
         })
 }
 
+export const emailAuth = (req,res,next) => {
+    const {token} = req.query;
+    if(!token)
+    return res.status(401).json({user_error: "no token"})
+    jwt.verify(token, process.env.EMAIL_CONFIRMATION_SECRET, (err,payload) => {
+        if(err)
+        return res.status(403).json({user_error: "unauthorized"})
+
+        console.log("email auth");
+        req.data = payload;
+        next();
+    })
+}

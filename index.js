@@ -9,7 +9,7 @@ import certifcate from "./config/certifcate.js";
 import jwt from 'jsonwebtoken'
 import { exit } from "process";
 import users from './Models/user.js'
-import { auth } from "./Controllers/Auth/auth.js";
+import { auth, emailAuth } from "./Controllers/Auth/auth.js";
 
 import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
@@ -19,7 +19,7 @@ import usersRouter from "./Controllers/Users/users.js";
 import eventsRouter from "./Controllers/Events/event.js";
 import Event from "./Models/event.js";
 import cron from 'node-cron'
-import { __dirname } from "./utils.js";
+import { __dirname, sendEmail } from "./utils.js";
 import cors from 'cors'
 
 const app = express()
@@ -73,8 +73,13 @@ app.post('/login', async (req,res) => {
     res.status(200).json({token: token})
 })
 
+//TODO: Verify email
+app.get('/verifyemail', emailAuth ,async (req,res) => {
+
+})
 
 app.post('/register', async (req,res) => {
+
     const email = req.body.email;
     const password = req.body.password
 
@@ -82,20 +87,28 @@ app.post('/register', async (req,res) => {
     if(user)
     return res.status(400).json({error: "exists"})
 
-    const created = await users.create({
-                                        email: email,
-                                        password: password,
-                                        })
-    if(created){
-        const toTokenize = {
-        id: created.id
+    const toEmailTokenize = {
+        email: email,
+        password: password
     }
-    const token = jwt.sign(toTokenize,process.env.SECRET)
-    res.status(201).json({token: token})
-    }
-    else{
-        res.status(500).json({Error: "Server couldn't create resource."})
-    }
+    const emailToken = jwt.sign(toEmailTokenize,process.env.EMAIL_CONFIRMATION_TOKEN,{expiresIn: '15m'})
+    const verification_endpoint = `http://${process.env.HOST}/verifyemail?token=${emailToken}`
+    const emailParams = {origin: req.url, target_email: email, verificationEndpoint: verification_endpoint}
+    const emailSent = sendEmail(emailParams)
+    // const created = await users.create({
+    //                                     email: email,
+    //                                     password: password,
+    //                                     })
+    // if(created){
+    //     const toTokenize = {
+    //     id: created.id
+    // }
+    // const token = jwt.sign(toTokenize,process.env.SECRET)
+    // res.status(201).json({token: token})
+    // }
+    // else{
+    //     res.status(500).json({Error: "Server couldn't create resource."})
+    // }
 
 })
 

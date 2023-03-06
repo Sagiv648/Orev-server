@@ -22,7 +22,11 @@ export const sendEmail = async (params) => {
             html = fs.readFileSync(`${__dirname}/html/adminGenericPassword/index.html`).toString().replace('[$generatedPassPlaceholder$]', params.generated_password)
             
             break;
-    
+        case '/register':
+
+            html = fs.readFileSync(`${__dirname}/html/emailConfirmation/index.html`).toString().replace('[$Endpoint-URL-Placehoder$]', params.verificationEndpoint)
+            break;
+            
         default:
             break;
     }
