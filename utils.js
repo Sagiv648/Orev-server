@@ -19,7 +19,7 @@ export const sendEmail = async (params) => {
     const subject = "Orev NPO email"
     switch (params.origin) {
         case '/addadmin':
-            html = fs.readFileSync(`${__dirname}/html/adminRandomPassword.html`).toString().replace('[$generatedPassPlaceholder$]', params.generated_password)
+            html = fs.readFileSync(`${__dirname}/html/adminGenericPassword/index.html`).toString().replace('[$generatedPassPlaceholder$]', params.generated_password)
             
             break;
     
