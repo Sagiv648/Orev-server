@@ -8,16 +8,16 @@ import http from 'http'
 import certifcate from "./config/certifcate.js";
 import jwt from 'jsonwebtoken'
 import { exit } from "process";
-import users from './Models/User.js'
+import users from './Models/user.js'
 import { auth } from "./Controllers/Auth/auth.js";
-import { privilegedAuth } from "./Controllers/Admin/adminAuth.js";
+
 import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
 import fallenRouter from "./Controllers/Fallen/fallen.js";
 import adminRouter from "./Controllers/Admin/admin.js";
 import usersRouter from "./Controllers/Users/users.js";
 import eventsRouter from "./Controllers/Events/event.js";
-import Event from "./Models/Event.js";
+import Event from "./Models/event.js";
 import cron from 'node-cron'
 import { __dirname } from "./utils.js";
 
@@ -28,34 +28,7 @@ dbContext()
 
 
 
- app.use('/files',  (req,res, next) => {
-
-    // const {access } = req.query;
-    // if(!access)
-    // return res.status(401).json({access: "denied"})
-    //     const payload = jwt.verify(access, process.env.SECRET, (err, payload) => {
-    //         if(err)
-    //         return res.status(401).json({access: "denied"})
-    //         else{
-    //             const imageRequest = req.path.split('/')[2]
-    //             const id = payload.id;
-    
-    //     if(imageRequest.startsWith(id)){
-    //         console.log("it gets here?");
-    //         next()
-    //     }
-                
-    //     else{
-    //         console.log("noooo");
-    //         return res.status(401).json({access: "denied"})
-    //     }
-    //         }
-    //     })
-        
-        next()
-        },
-
- express.static('files'))
+app.use('/files', express.static('files'))
 //authorization: Bearer [token]
 cron.schedule(' 0 0 * * *', async () => {
     
@@ -70,14 +43,6 @@ cron.schedule(' 0 0 * * *', async () => {
     
 })
 
-// cron.schedule(' * * * * *', async () => {
-//    const python = spawn('python',[`${__dirname}pythonscripttest.py`, "hello from node js"])
-//    console.log("every minute");
-//     python.stdout.on("data", (data) => {
-//         console.log("from python " + data.length);
-//     })
-// })
-
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 
@@ -87,7 +52,7 @@ app.use('/fallen', auth, fallenRouter)
 app.use('/users', auth, usersRouter)
 app.use('/events', auth, eventsRouter)
 
-app.use('/admin', auth,privilegedAuth, adminRouter)
+app.use('/admin', adminRouter)
 app.post('/login', async (req,res) => {
     //authorization
     const email = req.body.email;
@@ -102,14 +67,7 @@ app.post('/login', async (req,res) => {
     return res.status(401).json({error: "user error"})
     
     const toTokenize = {
-
-        id: user.id,
-        privilege: {
-            privilege_ring: user.privilege.privilege_ring,
-            privilege_id: user.privilege.privilege_id
-        },
-        privileged_token: false,
-        
+        id: user.id
     }
     const token = jwt.sign(toTokenize,process.env.SECRET)
     res.status(200).json({token: token})
@@ -130,12 +88,7 @@ app.post('/register', async (req,res) => {
                                         })
     if(created){
         const toTokenize = {
-        id: created.id,
-        privilege: {
-            privilege_ring: created.privilege.privilege_ring,
-            privilege_id: created.privilege.privilege_id
-        },
-        privileged_token: false
+        id: created.id
     }
     const token = jwt.sign(toTokenize,process.env.SECRET)
     res.status(201).json({token: token})

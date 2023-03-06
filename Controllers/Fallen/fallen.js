@@ -1,5 +1,5 @@
 import express from 'express'
-import Fallen from '../../Models/Fallen.js'
+import Fallen from '../../Models/fallen.js'
 import { documentToObject } from '../../utils.js'
 
 const fallenRouter = express.Router()

@@ -16,20 +16,6 @@ new Schema({
         type: Boolean,
         default: false
     },
-    privilege: {
-        privilege_ring: {
-            type: Number,
-            default: 2
-        },
-        privilege_id: {
-            type: String,
-            default: ""
-        },
-        privilege_password: {
-            type: String,
-            default: ""
-        }
-    },
     phone_number: {
         type: String,
         default: ""

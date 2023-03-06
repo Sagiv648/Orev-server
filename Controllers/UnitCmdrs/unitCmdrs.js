@@ -1,5 +1,5 @@
 import  express  from "express";
-import unitCmdrs from './../../Models/UnitCmdr.js'
+import unitCmdrs from '../../Models/unitcmdr.js'
 import { documentToObject } from "../../utils.js";
 const unitCmdrsRouter = express.Router()
 

@@ -4,10 +4,19 @@ export default
 model("Events", 
 new Schema({
     event_header: String,
-    date: String,
+    date: {
+        type: String,
+        required: true
+    },
     location:{
-        city: String,
-        address: String
+        city: {
+            type: String,
+            required: true
+        },
+        address: {
+            type: String,
+            required: true
+        }
     },
     time: String,
     description: String,

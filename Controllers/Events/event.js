@@ -1,5 +1,5 @@
 import express from 'express'
-import Event from '../../Models/Event.js'
+import Event from '../../Models/event.js'
 import { documentToObject } from '../../utils.js'
 const eventsRouter = express.Router()
 

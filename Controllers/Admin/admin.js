@@ -1,49 +1,23 @@
 import express from 'express'
-import User from '../../Models/User.js'
+import User from '../../Models/user.js'
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
 import ms from 'ms'
-import Event from './../../Models/Event.js'
-import { privilegeRingOneAuth,privilegeRingZeroAuth } from './adminAuth.js'
+import Event from '../../Models/event.js'
 import { documentToObject } from '../../utils.js'
-import childProcess from 'child_process'
 import { __dirname } from '../../utils.js'
+import { adminAuth } from '../Auth/auth.js'
 env.config()
 const adminRouter = express.Router()
 
-
-
-
-
+//TODO: new admin login
 adminRouter.post('/login', async (req,res) => {
 
-    console.log("admin login");
-    const data = req.data
-    const user = await User.findById(data.id)
     
-    if(!user)
-    return res.status(403).json({Error: "Access denied"})
-    
-    const body = req.body
-    if(body.privilege_id == user.privilege.privilege_id && body.privilege_password == user.privilege.privilege_password){
-        const toTokenize = {
-            
-            id: user.id,
-            privilege: {
-                privilege_ring: user.privilege.privilege_ring,
-                privilege_id: user.privilege.privilege_id
-            },
-            privileged_token: true
-        }
-        const token = jwt.sign(toTokenize, process.env.ADMIN_SECRET, {expiresIn: ms('5h')})
-        res.status(200).json({privileged_token: token})
-    }
-    else
-        res.status(403).json({Error: "Access denied"})
 })
 
 //\TODO: Create an event
-adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
+adminRouter.post('/addevent', adminAuth, async (req,res) => {
 
     const body = req.body
     
@@ -55,7 +29,7 @@ adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
         const created = await Event.create(body)
         if(created){
 
-            const child = childProcess.spawn('node', [`${__dirname}testprocess.js`])
+            
             
             res.status(201).json(documentToObject(created))
         }
@@ -68,7 +42,7 @@ adminRouter.post('/addevent', privilegeRingOneAuth, async (req,res) => {
 
 
 //\TODO: Delete event
-adminRouter.delete('/removeevents', privilegeRingOneAuth, async (req,res) => {
+adminRouter.delete('/removeevents', adminAuth, async (req,res) => {
     
     //Query strings:
     //Id,Header
@@ -94,7 +68,7 @@ adminRouter.delete('/removeevents', privilegeRingOneAuth, async (req,res) => {
 
 
 //TODO: Handle updatepriv route
-adminRouter.put('/updatepriv', privilegeRingZeroAuth, (req,res) => {
+adminRouter.put('/updatepriv', adminAuth, (req,res) => {
 
 
     console.log("updatepriv");
@@ -103,7 +77,7 @@ adminRouter.put('/updatepriv', privilegeRingZeroAuth, (req,res) => {
 
 
 //TODO: Handle addjob route
-adminRouter.post('/addjob', privilegeRingOneAuth, (req,res) => {
+adminRouter.post('/addjob', adminAuth, (req,res) => {
 
     console.log("addjob");
     return res.status(201).json({privilege: "addjob route"})
@@ -111,7 +85,7 @@ adminRouter.post('/addjob', privilegeRingOneAuth, (req,res) => {
 
 
 //TODO: Handle removejobs route
-adminRouter.delete('/removejobs', privilegeRingOneAuth, (req,res) => {
+adminRouter.delete('/removejobs', adminAuth, (req,res) => {
 
     console.log("removejob");
     return res.status(200).json({privilege: "removejob"})
@@ -119,7 +93,7 @@ adminRouter.delete('/removejobs', privilegeRingOneAuth, (req,res) => {
 
 
 //TODO: Handle addunitcmdr route
-adminRouter.post('/addunitcmdr', privilegeRingZeroAuth, (req,res) => {
+adminRouter.post('/addunitcmdr', adminAuth, (req,res) => {
 
     console.log("addunitcmdr");
     return res.status(201).json({privilege: "addunitcmdr route"})
@@ -127,7 +101,7 @@ adminRouter.post('/addunitcmdr', privilegeRingZeroAuth, (req,res) => {
 
 
 //TODO: Handle removeunitcmdr route
-adminRouter.delete('/removeunitcmdr', privilegeRingZeroAuth, (req,res) => {
+adminRouter.delete('/removeunitcmdr', adminAuth, (req,res) => {
 
     console.log("removeunitcmdr");
     return res.status(200).json({privilege: "removeunitcmdr route"})
@@ -135,7 +109,7 @@ adminRouter.delete('/removeunitcmdr', privilegeRingZeroAuth, (req,res) => {
 
 
 //TODO: Handle addfallen route
-adminRouter.post('/addfallen', privilegeRingZeroAuth, (req,res) => {
+adminRouter.post('/addfallen', adminAuth, (req,res) => {
 
     console.log("addfallen");
     return res.status(201).json({privilege: "addfallen route"})
@@ -143,7 +117,7 @@ adminRouter.post('/addfallen', privilegeRingZeroAuth, (req,res) => {
 
 
 //TODO: Handle removefallen route
-adminRouter.delete('/removefallen', privilegeRingZeroAuth, (req,res) => {
+adminRouter.delete('/removefallen', adminAuth, (req,res) => {
 
     console.log("removefallen");
     return res.status(200).json({privilege: "removefallen route"})

@@ -1,5 +1,5 @@
 import  express  from "express";
-import users from "../../Models/User.js";
+import users from "../../Models/user.js";
 import { documentToObject } from "../../utils.js";
 import fileUpload from "../../config/filesConfig.js";
 const profileRouter = express.Router()
