@@ -10,8 +10,14 @@ new Schema({
         type: String,
         default: ""
     },
-    email: String,
-    password: String,
+    email: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
     mentor: {
         type: Boolean,
         default: false

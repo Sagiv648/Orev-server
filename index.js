@@ -20,7 +20,7 @@ import eventsRouter from "./Controllers/Events/event.js";
 import Event from "./Models/event.js";
 import cron from 'node-cron'
 import { __dirname } from "./utils.js";
-
+import cors from 'cors'
 
 const app = express()
 dotenv.config()
@@ -52,7 +52,7 @@ app.use('/fallen', auth, fallenRouter)
 app.use('/users', auth, usersRouter)
 app.use('/events', auth, eventsRouter)
 
-app.use('/admin', adminRouter)
+app.use('/admin', cors() ,adminRouter)
 app.post('/login', async (req,res) => {
     //authorization
     const email = req.body.email;
