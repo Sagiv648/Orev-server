@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
+import admin from '../../Models/admin.js'
 import { readFileSync,__dirname } from '../../utils.js'
 env.config()
 
@@ -33,7 +34,7 @@ export const adminAuth = (req,res,next) => {
     if(!token)
     return res.status(401).json({Error: "no token"})
     else
-        jwt.verify(token, process.env.ADMIN_SECRET, (err,payload) => {
+        jwt.verify(token, process.env.ADMIN_SECRET, async (err,payload) => {
             if(err)
             {
                 return res.status(403).json({error: "unauthorized"})
@@ -42,7 +43,17 @@ export const adminAuth = (req,res,next) => {
             else{
                 console.log("admin auth - admin payload");
                 req.data = payload
-                next()
+                try {
+                    const exists = await admin.findById(payload.id)
+                    if(exists)
+                        next()
+                    return res.status(403).json({error: "unauthorized"})
+                } 
+                catch (error) {
+                    return res.status(500).json({server_error: "error occured with the server"})
+                }
+
+                
             }
             
         })

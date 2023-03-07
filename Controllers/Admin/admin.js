@@ -3,10 +3,11 @@ import admin from '../../Models/admin.js'
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
 import Event from '../../Models/event.js'
+import job from '../../Models/job.js'
 import { documentToObject, sendEmail,__dirname, randomBytes } from '../../utils.js'
 import adminActions from '../../config/adminActions.js'
 import { adminAuth } from '../Auth/auth.js'
-
+import files from '../../config/filesConfig.js'
 env.config()
 const adminRouter = express.Router()
 
@@ -191,31 +192,68 @@ adminRouter.delete('/removeadmin', adminAuth, async (req,res) => {
 
 })
 
-//TODO: Handle addjob route
-adminRouter.post('/addjob', adminAuth, (req,res) => {
+//TODO: addjob - Potentially accept as multi-part/form data
+adminRouter.post('/addjob', adminAuth, async (req,res) => {
 
     console.log(req.data);
     if(req.data.access.filter(x => x == '*' || x== 'job').length == 0)
     return res.status(401).json({user_error: "unauthorized"})
 
-    console.log("addjob");
-    return res.status(201).json({privilege: "addjob route"})
+    const {job_header, job_content} = req.body;
+    if(job_header && job_content)
+    {
+        try {
+            
+            const created = await job.create({
+                job_header: job_header,
+                job_content: job_content
+            })
+            if(created)
+                return res.status(201).json(documentToObject(created))
+
+        } catch (error) {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+        
+
+        return res.status(500).json({server_error: "couldn't create a job"})
+    }
+
+    
+    return res.status(400).json({user_error: "invalid fields"})
 })
 
 
 //TODO: Handle removejobs route
-adminRouter.delete('/removejob', adminAuth, (req,res) => {
+adminRouter.delete('/removejob', adminAuth, async (req,res) => {
 
     console.log(req.data);
     if(req.data.access.filter(x => x == '*' || x== 'job').length == 0)
     return res.status(401).json({user_error: "unauthorized"})
 
-    console.log("removejob");
-    return res.status(200).json({privilege: "removejob"})
+    const {id} = req.body
+    if(id)
+    {
+        try 
+        {
+            const deleted = await job.findByIdAndRemove(id)
+            if(deleted)
+                return res.status(200).json(documentToObject(deleted))
+
+        } 
+        catch (error) {
+
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+        return res.status(400).json({user_error: "job not found"})
+    }
+
+    
+    return res.status(400).json({user_error: "invalid fields"})
 })
 
 
-//TODO: Handle addunitcmdr route
+//TODO: addunitcmdr - Potentially accept as multi-part/form data
 adminRouter.post('/addunitcmdr', adminAuth, (req,res) => {
 
     console.log(req.data);
@@ -239,7 +277,7 @@ adminRouter.delete('/removeunitcmdr', adminAuth, (req,res) => {
 })
 
 
-//TODO: Handle addfallen route
+//TODO: addfallen - Potentially accept as multi-part/form data
 adminRouter.post('/addfallen', adminAuth, (req,res) => {
 
     console.log(req.data);
@@ -264,7 +302,7 @@ adminRouter.delete('/removefallen', adminAuth, (req,res) => {
 })
 
 
-adminRouter.post('/addmentor', adminAuth, (req,res) => {
+adminRouter.put('/addmentor', adminAuth, (req,res) => {
 
     console.log(req.data);
     if(req.data.access.filter(x => x == '*' || x== 'mentor').length == 0)
@@ -277,7 +315,7 @@ adminRouter.post('/addmentor', adminAuth, (req,res) => {
 })
 
 
-adminRouter.post('/removementor', adminAuth, (req,res) => {
+adminRouter.put('/removementor', adminAuth, (req,res) => {
 
     console.log(req.data);
     if(req.data.access.filter(x => x == '*' || x== 'mentor').length == 0)
