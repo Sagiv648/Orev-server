@@ -9,8 +9,8 @@ import certifcate from "./config/certifcate.js";
 import jwt from 'jsonwebtoken'
 import { exit } from "process";
 import users from './Models/user.js'
-import { auth, emailAuth } from "./Controllers/Auth/auth.js";
-
+import { auth, emailAuth, passwordRestorationAuth } from "./Controllers/Auth/auth.js";
+import bcryptjs from 'bcryptjs'
 import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
 import fallenRouter from "./Controllers/Fallen/fallen.js";
@@ -19,7 +19,7 @@ import usersRouter from "./Controllers/Users/users.js";
 import eventsRouter from "./Controllers/Events/event.js";
 import Event from "./Models/event.js";
 import cron from 'node-cron'
-import { __dirname, sendEmail } from "./utils.js";
+import { __dirname, sendEmail,readFileSync,randomBytes } from "./utils.js";
 import cors from 'cors'
 
 const app = express()
@@ -73,9 +73,89 @@ app.post('/login', async (req,res) => {
     res.status(200).json({token: token})
 })
 
-//TODO: Verify email
+app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) => {
+
+    const {email} = req.data;
+    const generated_password = randomBytes(7).toString("hex");
+    const hashed_password = generated_password;
+    const url = req.url.split("?token")
+    try {
+        const updated = await users.findOneAndUpdate({email: email}, {password: hashed_password}, {returnDocument: 'after'})
+        if(updated){
+
+            const emailParams = {origin: url[0], target_email: email, generated_password: generated_password, err: ""}
+            const emailSent = await sendEmail(emailParams)
+            if(emailSent){
+                const html = readFileSync(`${__dirname}/passwordReset/index.html`).toString();
+                return res.status(200).send(html)
+            }
+                
+            else if(emailParams.err == "EENVELOPE")
+                return res.status(400).json({user_error: "invalid email"})
+
+            else if(emailParams.err == "invalid origin")
+                return res.status(400).json({user_error: "invalid email sending origin"})
+            
+        }
+        return res.status(500).json({server_error: "couldn't send an email"})
+    } catch (err) {
+        
+    }
+
+    //const hashed_password = await bcryptjs.hash(generated_password,10);
+    
+})
+
+app.post('/passwordrestoration', async (req,res) => {
+    const {email} = req.body;
+    try {
+        const user = await users.findOne({email: email})
+        if(!user)
+            return res.status(400).json({error: "doesn't exist"})
+    } catch (error) {
+        return res.status(500).json({server_error: "a problem occured with the server"})
+    }
+    
+
+    const toEmailTokenize = {
+        email: email
+    }
+    const emailToken = jwt.sign(toEmailTokenize,process.env.PASSWORD_RESTORATION_SECRET,{expiresIn: '24h'})
+    const resetEndpoint = `http://${process.env.HOST}/verifypasswordrestoration?token=${emailToken}`
+    const emailParams = {origin: req.url, target_email: email, resetEndpoint: resetEndpoint, err: ""}
+
+    
+    const emailSent = await sendEmail(emailParams)
+    if(emailSent)
+        return res.status(200).json({accepted: "email sent"})
+
+    else if(emailParams.err == "EENVELOPE")
+        return res.status(400).json({user_error: "invalid email"})
+
+    else if(emailParams.err == "invalid origin")
+        return res.status(400).json({user_error: "invalid email sending origin"})
+
+    return res.status(500).json({server_error: "couldn't send an email"})
+    
+})
+
 app.get('/verifyemail', emailAuth ,async (req,res) => {
 
+    const {email, password} = req.data;
+    try {
+
+        const created = await users.create({email: email, password: password})
+        if(created)
+        {
+            const html = readFileSync(`${__dirname}/html/emailConfirmed/index.html`).toString();
+            return res.status(201).send(html)
+        } 
+        return res.status(500).json({server_error: "couldn't create"})                      
+    } catch (err) {
+        return res.status(500).json({server_error: "couldn't create"})
+    }
+    
+    
 })
 
 app.post('/register', async (req,res) => {
@@ -83,32 +163,31 @@ app.post('/register', async (req,res) => {
     const email = req.body.email;
     const password = req.body.password
 
-    const user = await users.findOne({email: email}).exec()
+    const user = await users.findOne({email: email})
     if(user)
-    return res.status(400).json({error: "exists"})
+        return res.status(400).json({error: "exists"})
 
     const toEmailTokenize = {
         email: email,
         password: password
     }
-    const emailToken = jwt.sign(toEmailTokenize,process.env.EMAIL_CONFIRMATION_TOKEN,{expiresIn: '15m'})
+    const emailToken = jwt.sign(toEmailTokenize,process.env.EMAIL_CONFIRMATION_SECRET,{expiresIn: '15m'})
     const verification_endpoint = `http://${process.env.HOST}/verifyemail?token=${emailToken}`
-    const emailParams = {origin: req.url, target_email: email, verificationEndpoint: verification_endpoint}
-    const emailSent = sendEmail(emailParams)
-    // const created = await users.create({
-    //                                     email: email,
-    //                                     password: password,
-    //                                     })
-    // if(created){
-    //     const toTokenize = {
-    //     id: created.id
-    // }
-    // const token = jwt.sign(toTokenize,process.env.SECRET)
-    // res.status(201).json({token: token})
-    // }
-    // else{
-    //     res.status(500).json({Error: "Server couldn't create resource."})
-    // }
+    const emailParams = {origin: req.url, target_email: email, verificationEndpoint: verification_endpoint, err: ""}
+
+    
+    const emailSent = await sendEmail(emailParams)
+    if(emailSent)
+        return res.status(200).json({accepted: "email sent"})
+
+    else if(emailParams.err == "EENVELOPE")
+        return res.status(400).json({user_error: "invalid email"})
+
+    else if(emailParams.err == "invalid origin")
+        return res.status(400).json({user_error: "invalid email sending origin"})
+
+    return res.status(500).json({server_error: "couldn't send an email"})
+    
 
 })
 

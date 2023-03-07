@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
+import { readFileSync,__dirname } from '../../utils.js'
 env.config()
 
 
@@ -52,10 +53,30 @@ export const emailAuth = (req,res,next) => {
     if(!token)
     return res.status(401).json({user_error: "no token"})
     jwt.verify(token, process.env.EMAIL_CONFIRMATION_SECRET, (err,payload) => {
-        if(err)
-        return res.status(403).json({user_error: "unauthorized"})
+        if(err){
+            const html = readFileSync(`${__dirname}/html/invalidEmailToken/index.html`).toString();
+            return res.status(400).send(html)
+        }
+        
 
         console.log("email auth");
+        req.data = payload;
+        next();
+    })
+}
+
+export const passwordRestorationAuth = (req,res,next) => {
+    const {token} = req.query
+    if(!token)
+    return res.status(401).json({user_error: "no token"})
+
+    jwt.verify(token, process.env.PASSWORD_RESTORATION_SECRET, (err, payload) => {
+
+        if(err){
+            const html = readFileSync(`${__dirname}/html/invalidPasswordRestorationEmail/index.html`).toString();
+            return res.status(400).send(html)
+        }
+        console.log("password restoration auth");
         req.data = payload;
         next();
     })

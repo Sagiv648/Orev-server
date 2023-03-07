@@ -130,12 +130,17 @@ adminRouter.post('/addadmin', adminAuth, async (req,res) => {
     })
     if(!created)
     return res.status(500).json({server_error: "couldn't create an admin"})
-    const emailParams = {origin: req.url, target_email: email ,generated_password: randomPass}
+    const emailParams = {origin: req.url, target_email: email ,generated_password: randomPass, err: ""}
     const sent = await sendEmail(emailParams)
-    if(sent){
-        console.log("addadmin");
+    if(sent)
         return res.status(200).json({privilege: "addadmin route"})
-    }
+    
+    else if(emailParams.err == "EENVELOPE")
+        return res.status(400).json({user_error: "invalid email"})
+
+    else if(emailParams.err == "invalid origin")
+        return res.status(400).json({user_error: "invalid email sending origin"})    
+        
     return res.status(500).json({server_error: "couldn't send an email"})
 })
 
