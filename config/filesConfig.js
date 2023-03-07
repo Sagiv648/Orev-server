@@ -1,27 +1,62 @@
 import multer, { diskStorage } from 'multer'
 import dotenv from 'dotenv'
+import { __dirname, fs } from '../utils.js';
+
 dotenv.config();
 const filesLimit = 1024 * 1024 * 10;
 
+
 const mimes = ['jpg', 'jpeg', 'png']
+const overrideFile = (path, id) => {
+
+    for(let i = 0; i < mimes.length; i++)
+    {
+        const filePath = `${__dirname}/${path}/${id}.${mimes[i]}`
+        if(fs.existsSync(filePath))
+        {
+            fs.rmSync(filePath)
+            break;
+        }
+    }
+        
+        
+}
+
+
 const mapping = new Map()
 mapping.set("/profile", (id,cb) => {
+    overrideFile(process.env.AVATARS_FILES_DEST,id)
     cb(null,process.env.AVATARS_FILES_DEST)
 })
 mapping.set('/addfallen', (id,cb) => {
+    overrideFile(process.env.FALLEN_FILES_DEST,id)
     cb(null,process.env.FALLEN_FILES_DEST)
 })
 mapping.set('/addunitcmdr', (id,cb) => {
+    overrideFile(process.env.CMDRS_FILES_DEST,id)
     cb(null,process.env.CMDRS_FILES_DEST)
 })
 mapping.set('/addevent', (id,cb) => {
+    overrideFile(process.env.EVENTS_FILES_DEST,id)
     cb(null,process.env.EVENTS_FILES_DEST)
 })
+mapping.set('/addjob', (id,cb) => {
+    overrideFile(process.env.EVENTS_FILES_DEST,id)
+    cb(null,process.env.EVENTS_FILES_DEST)
+})
+
+
+
 const storage = diskStorage({
     destination: (req,file, cb) => {
         
         const id = req.data.id;
+
+        
+
+        
         if(id && mapping.has(req.baseUrl)){
+
             mapping.get(req.baseUrl)(id,cb)
         }
     },

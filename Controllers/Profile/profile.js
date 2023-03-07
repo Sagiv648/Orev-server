@@ -1,6 +1,6 @@
 import  express  from "express";
 import users from "../../Models/user.js";
-import { documentToObject } from "../../utils.js";
+import { documentToObject, removeEmptyFields } from "../../utils.js";
 import fileUpload from "../../config/filesConfig.js";
 const profileRouter = express.Router()
 
@@ -25,12 +25,14 @@ profileRouter.post('/upload-avatar', (req,res,next) => {
 //
 //\TODO: PUT profile (edit profile option)
 
-
+//TODO: Complete removeEmptyFields function on utils.js
 profileRouter.put('/', fileUpload.single('avatar') ,async (req,res) => {
+
     const id = req.data.id
     const body = req.body
     
-    const toUpdate = {...body, avatar: req.file.path}
+    const toUpdate = removeEmptyFields(body)
+    
     const updated = await users.findOneAndUpdate({_id: id},toUpdate,{returnDocument: "after"})
      if(!updated)
      return res.status(500).json({error: "Server couldn't update"})

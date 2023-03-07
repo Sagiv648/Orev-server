@@ -1,17 +1,23 @@
 
 import * as url from 'url';
 import transport from './config/emailConfig.js';
-import fs from 'fs'
+import files from 'fs'
 import crypto from 'crypto'
 export const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export const documentToObject = (doc) => {
-    return Object.keys(doc.toObject()).filter(x => x != 'password' && x != '__v' && x != 'privilege' )
+    return Object.keys(doc.toObject()).filter(x => x != 'password' && x != '__v' )
     .reduce((o,key) => ({...o, [key] : doc.toObject()[key]}),{})
 }
 
-export const {readFileSync} = fs
+export const {readFileSync} = files
+export const fs = files
 export const { randomBytes} = crypto
+
+export const removeEmptyFields = (obj) => {
+    return Object.keys(obj).filter(x => obj[x] != '').reduce((o,key) => ({...o, [key] : obj[key]}), {})
+}
+
 //TODO: Add emails
 export const sendEmail = async (params) => {
     
@@ -23,19 +29,20 @@ export const sendEmail = async (params) => {
     switch (params.origin) {
         case '/addadmin':
             html = fs.readFileSync(`${__dirname}/html/adminGenericPassword/index.html`).toString().replace('[$generatedPassPlaceholder$]', params.generated_password)
-            
             break;
-        case '/register':
 
+        case '/register':
             html = fs.readFileSync(`${__dirname}/html/emailConfirmation/index.html`).toString().replace('[$Endpoint-URL-Placehoder$]',params.verificationEndpoint)
             break;
 
         case '/passwordrestoration':
             html = fs.readFileSync(`${__dirname}/html/passwordRestorationEmail/index.html`).toString().replace('[$passwordRestorationPlacehoder$]', params.resetEndpoint)
             break;
+
         case '/verifypasswordrestoration':
             html = fs.readFileSync(`${__dirname}/html/passwordResetEmail/index.html`).toString().replace('[$generatedPasswordPlaceholder$]', params.generated_password)
             break;
+
         default:
             params.err = "invalid origin"
             return false

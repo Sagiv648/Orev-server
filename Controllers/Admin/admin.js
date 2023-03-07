@@ -3,10 +3,9 @@ import admin from '../../Models/admin.js'
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
 import Event from '../../Models/event.js'
-import { documentToObject, sendEmail,__dirname } from '../../utils.js'
-
+import { documentToObject, sendEmail,__dirname, randomBytes } from '../../utils.js'
+import adminActions from '../../config/adminActions.js'
 import { adminAuth } from '../Auth/auth.js'
-import {randomBytes} from 'crypto'
 
 env.config()
 const adminRouter = express.Router()
@@ -39,7 +38,6 @@ adminRouter.post('/login', async (req,res) => {
 //\TODO: Create an event
 adminRouter.post('/addevent', adminAuth, async (req,res) => {
 
-    console.log(req.data);
     if(req.data.access.filter(x => x == '*' || x== 'event').length == 0)
     return res.status(401).json({user_error: "unauthorized"})
 
@@ -69,7 +67,7 @@ adminRouter.post('/addevent', adminAuth, async (req,res) => {
 //\TODO: Delete event
 adminRouter.delete('/removeevents', adminAuth, async (req,res) => {
     
-    console.log(req.data);
+    
     if(req.data.access.filter(x => x == '*' || x== 'event').length == 0)
     return res.status(401).json({user_error: "unauthorized"})
 
@@ -97,16 +95,43 @@ adminRouter.delete('/removeevents', adminAuth, async (req,res) => {
 
 
 //TODO: Handle updatepriv route
-adminRouter.put('/updatepriv', adminAuth, (req,res) => {
+adminRouter.put('/updatepriv', adminAuth, async (req,res) => {
 
     console.log(req.data);
     if(req.data.access.filter(x => x == '*' || x== 'priv').length == 0)
     return res.status(401).json({user_error: "unauthorized"})
 
-    
+    const {access, email} = req.body;
+    if(access && email)
+    {
+        const privs = []
+        
+        for(let i = 0; i < adminActions.length; i++)
+        {
+            for(let j = 0; j < access.length; j++)
+                if(access[j] == adminActions[i])
+                {
+                    privs.push(adminActions[i])
+                    break;
+                }
+        }
+        
+        try {
+            const updated = await admin.findOneAndUpdate({email: email},
+                {access: adminActions.length == privs.length ? ['*'] : privs}, {returnDocument: 'after'})
+            if(!updated)
+                return res.status(500).json({server_error: "couldn't update"})
 
-    console.log("updatepriv");
-    return res.status(200).json({privilege: "updatepriv route"})
+            return res.status(200).json(documentToObject(updated))
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "a problem occured with the server"})
+        }
+        
+    }
+    return res.status(400).json({user_error: "invalid fields"})
+    
 })
 
 
@@ -145,16 +170,25 @@ adminRouter.post('/addadmin', adminAuth, async (req,res) => {
 })
 
 
-adminRouter.delete('/removeadmin', adminAuth, (req,res) => {
+adminRouter.delete('/removeadmin', adminAuth, async (req,res) => {
 
     console.log(req.data);
     if(req.data.access.filter(x => x == '*' || x== 'admin').length == 0)
     return res.status(401).json({user_error: "unauthorized"})
 
-    
+    const {email} = req.body;
 
-    console.log("removeadmin");
-    return res.status(200).json({privilege: "removeadmin route"})
+    try {
+        const deleted = await admin.findOneAndRemove({email: email})
+        if(!deleted)
+            return res.status(400).json({user_error: "admin doesn't exist"})
+
+        return res.status(200).json(documentToObject(deleted))
+    } 
+    catch (error) {
+        return res.status(500).json({server_error: "a problem occured with the server"})
+    }
+
 })
 
 //TODO: Handle addjob route
@@ -236,6 +270,7 @@ adminRouter.post('/addmentor', adminAuth, (req,res) => {
     if(req.data.access.filter(x => x == '*' || x== 'mentor').length == 0)
     return res.status(401).json({user_error: "unauthorized"})
 
+    
 
     console.log("addmentor");
     return res.status(200).json({privilege: "addmentor route"})

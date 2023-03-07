@@ -53,6 +53,7 @@ export const emailAuth = (req,res,next) => {
     if(!token)
     return res.status(401).json({user_error: "no token"})
     jwt.verify(token, process.env.EMAIL_CONFIRMATION_SECRET, (err,payload) => {
+        
         if(err){
             const html = readFileSync(`${__dirname}/html/invalidEmailToken/index.html`).toString();
             return res.status(400).send(html)
