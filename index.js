@@ -86,7 +86,7 @@ app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) =
             const emailParams = {origin: url[0], target_email: email, generated_password: generated_password, err: ""}
             const emailSent = await sendEmail(emailParams)
             if(emailSent){
-                const html = readFileSync(`${__dirname}/passwordReset/index.html`).toString();
+                const html = readFileSync(`${__dirname}/html/passwordReset/index.html`).toString();
                 return res.status(200).send(html)
             }
                 
@@ -99,7 +99,8 @@ app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) =
         }
         return res.status(500).json({server_error: "couldn't send an email"})
     } catch (err) {
-        
+        console.log(err.message);
+        return res.status(500).json({server_error: "a problem occured with the server"})
     }
 
     //const hashed_password = await bcryptjs.hash(generated_password,10);
