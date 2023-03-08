@@ -9,7 +9,7 @@ import certifcate from "./config/certifcate.js";
 import jwt from 'jsonwebtoken'
 import { exit } from "process";
 import users from './Models/user.js'
-import { auth, emailAuth, passwordRestorationAuth } from "./Controllers/Auth/auth.js";
+import { auth, emailAuth, passwordRestorationAuth, adminAuth, adminAccessAuth } from "./Controllers/Auth/auth.js";
 import bcryptjs from 'bcryptjs'
 import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
@@ -17,6 +17,7 @@ import fallenRouter from "./Controllers/Fallen/fallen.js";
 import adminRouter from "./Controllers/Admin/admin.js";
 import usersRouter from "./Controllers/Users/users.js";
 import eventsRouter from "./Controllers/Events/event.js";
+import admin from "./Models/admin.js";
 import Event from "./Models/event.js";
 import cron from 'node-cron'
 import { __dirname, sendEmail,readFileSync,randomBytes } from "./utils.js";
@@ -52,7 +53,30 @@ app.use('/fallen', auth, fallenRouter)
 app.use('/users', auth, usersRouter)
 app.use('/events', auth, eventsRouter)
 
-app.use('/admin', cors() ,adminRouter)
+app.use('/admin/login', cors(), async (req,res) => {
+    const {email, password} = req.body;
+    const exists = await admin.findOne({email: email})
+    console.log(exists);
+    if(!exists)
+    return res.status(400).json({Error: "user doesn't exist"})
+    if(exists.password == password)
+    {
+        const toTokenize = {
+            
+            id: exists.id,
+            access: exists.access
+        }
+        const token = jwt.sign(toTokenize, process.env.ADMIN_SECRET, {expiresIn: '24h'})
+        return res.status(200).json({token: token, user: {
+            email: exists.email,
+            access: exists.access
+        }})
+    }
+    return res.status(400).json({Error: "unauthorized"})
+    
+})
+app.use('/admin', cors(), adminAuth, adminAccessAuth ,adminRouter)
+
 app.post('/login', async (req,res) => {
     //authorization
     const email = req.body.email;

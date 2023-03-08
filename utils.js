@@ -67,3 +67,24 @@ export const sendEmail = async (params) => {
     
 
 }
+
+export const isSubstring = (string, substr) => {
+
+    let i = 0;
+    let j = 0
+    for(i = 0; i < string.length; i++)
+    {
+        if(string[i] == substr[0])
+        {
+            
+            for(j = 0; (i + j) < string.length && j < substr.length; j++)
+            {
+                if(string[i+j] != substr[j])
+                    break;
+            }
+            if(j == substr.length)
+                return true
+        }
+    }
+    return false
+}

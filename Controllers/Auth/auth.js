@@ -47,7 +47,8 @@ export const adminAuth = (req,res,next) => {
                     const exists = await admin.findById(payload.id)
                     if(exists)
                         next()
-                    return res.status(403).json({error: "unauthorized"})
+                    else
+                        return res.status(403).json({error: "unauthorized"})
                 } 
                 catch (error) {
                     return res.status(500).json({server_error: "error occured with the server"})
@@ -57,6 +58,20 @@ export const adminAuth = (req,res,next) => {
             }
             
         })
+}
+
+export const adminAccessAuth = (req,res,next) => {
+    const {access} = req.data
+    if(access){
+        let i = 0;
+        for(; i < access.length; i++)
+            if(access[i] == '*' || access[i] == req.url)
+                return next()
+        return res.status(401).json({access_error: "invalid"}) 
+    }
+    else
+        return res.status(400).json({user_error: "invalid"})
+    
 }
 
 export const emailAuth = (req,res,next) => {

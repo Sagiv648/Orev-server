@@ -6,42 +6,12 @@ import Event from '../../Models/event.js'
 import job from '../../Models/job.js'
 import { documentToObject, sendEmail,__dirname, randomBytes } from '../../utils.js'
 import adminActions from '../../config/adminActions.js'
-import { adminAuth } from '../Auth/auth.js'
 import files from '../../config/filesConfig.js'
 env.config()
 const adminRouter = express.Router()
 
-//TODO: new admin login
-adminRouter.post('/login', async (req,res) => {
-    
-    const {email, password} = req.body;
-    const exists = await admin.findOne({email: email})
-    console.log(exists);
-    if(!exists)
-    return res.status(400).json({Error: "user doesn't exist"})
-    if(exists.password == password)
-    {
-        const toTokenize = {
-            
-            id: exists.id,
-            access: exists.access
-        }
-        const token = jwt.sign(toTokenize, process.env.ADMIN_SECRET, {expiresIn: '24h'})
-        return res.status(200).json({token: token, user: {
-            email: exists.email,
-            access: exists.access
-        }})
-    }
-    return res.status(400).json({Error: "unauthorized"})
-    
-})
-
 //\TODO: Create an event
-adminRouter.post('/addevent', adminAuth, async (req,res) => {
-
-    if(req.data.access.filter(x => x == '*' || x== 'event').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
-
+adminRouter.post('/event', async (req,res) => {
 
     const body = req.body
     
@@ -66,12 +36,8 @@ adminRouter.post('/addevent', adminAuth, async (req,res) => {
 
 
 //\TODO: Delete event
-adminRouter.delete('/removeevents', adminAuth, async (req,res) => {
+adminRouter.delete('/event', async (req,res) => {
     
-    
-    if(req.data.access.filter(x => x == '*' || x== 'event').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
-
     //Query strings:
     //Id,Header
     const query = req.query
@@ -96,11 +62,7 @@ adminRouter.delete('/removeevents', adminAuth, async (req,res) => {
 
 
 //TODO: Handle updatepriv route
-adminRouter.put('/updatepriv', adminAuth, async (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'priv').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
+adminRouter.put('/priv', async (req,res) => {
 
     const {access, email} = req.body;
     if(access && email)
@@ -136,11 +98,7 @@ adminRouter.put('/updatepriv', adminAuth, async (req,res) => {
 })
 
 
-adminRouter.post('/addadmin', adminAuth, async (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'admin').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
+adminRouter.post('/admin', async (req,res) => {
 
     const {email} = req.body;
     
@@ -171,11 +129,7 @@ adminRouter.post('/addadmin', adminAuth, async (req,res) => {
 })
 
 
-adminRouter.delete('/removeadmin', adminAuth, async (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'admin').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
+adminRouter.delete('/admin', async (req,res) => {
 
     const {email} = req.body;
 
@@ -193,11 +147,7 @@ adminRouter.delete('/removeadmin', adminAuth, async (req,res) => {
 })
 
 //TODO: addjob - Potentially accept as multi-part/form data
-adminRouter.post('/addjob', adminAuth, async (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'job').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
+adminRouter.post('/job', async (req,res) => {
 
     const {job_header, job_content} = req.body;
     if(job_header && job_content)
@@ -225,11 +175,7 @@ adminRouter.post('/addjob', adminAuth, async (req,res) => {
 
 
 //TODO: Handle removejobs route
-adminRouter.delete('/removejob', adminAuth, async (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'job').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
+adminRouter.delete('/job', async (req,res) => {
 
     const {id} = req.body
     if(id)
@@ -254,76 +200,42 @@ adminRouter.delete('/removejob', adminAuth, async (req,res) => {
 
 
 //TODO: addunitcmdr - Potentially accept as multi-part/form data
-adminRouter.post('/addunitcmdr', adminAuth, (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'unitcmdr').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
-
+adminRouter.post('/unitcmdr', files.single('picture') ,(req,res) => {
+    console.log(req.created_document);
+    console.log(req.file.path);
     console.log("addunitcmdr");
-    return res.status(201).json({privilege: "addunitcmdr route"})
+    return res.status(201).json({privilege: "add unitcmdr route"})
 })
 
 
 //TODO: Handle removeunitcmdr route
-adminRouter.delete('/removeunitcmdr', adminAuth, (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'unitcmdr').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
-
+adminRouter.delete('/unitcmdr', (req,res) => {
+    
     console.log("removeunitcmdr");
-    return res.status(200).json({privilege: "removeunitcmdr route"})
+    return res.status(200).json({privilege: "remove unitcmdr route"})
 })
 
 
 //TODO: addfallen - Potentially accept as multi-part/form data
-adminRouter.post('/addfallen', adminAuth, (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'fallen').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
+adminRouter.post('/fallen', files.single('picture') ,(req,res) => {
 
     console.log("addfallen");
-    return res.status(201).json({privilege: "addfallen route"})
+    return res.status(201).json({privilege: "add fallen route"})
 })
 
 
 //TODO: Handle removefallen route
-adminRouter.delete('/removefallen', adminAuth, (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'fallen').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
-
+adminRouter.delete('/fallen', (req,res) => {
 
     console.log("removefallen");
-    return res.status(200).json({privilege: "removefallen route"})
+    return res.status(200).json({privilege: "remove fallen route"})
 })
 
 
-adminRouter.put('/addmentor', adminAuth, (req,res) => {
+adminRouter.put('/mentor', (req,res) => {
 
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'mentor').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
-
-    
-
-    console.log("addmentor");
-    return res.status(200).json({privilege: "addmentor route"})
-})
-
-
-adminRouter.put('/removementor', adminAuth, (req,res) => {
-
-    console.log(req.data);
-    if(req.data.access.filter(x => x == '*' || x== 'mentor').length == 0)
-    return res.status(401).json({user_error: "unauthorized"})
-
-
-    console.log("removementor");
-    return res.status(200).json({privilege: "removementor route"})
+    console.log("addmentor/removementor");
+    return res.status(200).json({privilege: "add/remove mentor route"})
 })
 
 
