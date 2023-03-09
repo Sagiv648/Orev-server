@@ -28,8 +28,6 @@ dotenv.config()
 dbContext()
 
 
-
-app.use('/files', express.static('files'))
 //authorization: Bearer [token]
 cron.schedule(' 0 0 * * *', async () => {
     

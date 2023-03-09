@@ -61,6 +61,7 @@ export const adminAuth = (req,res,next) => {
 }
 
 export const adminAccessAuth = (req,res,next) => {
+    
     const {access} = req.data
     if(access){
         let i = 0;

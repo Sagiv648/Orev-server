@@ -4,9 +4,12 @@ import jwt from 'jsonwebtoken'
 import env from 'dotenv'
 import Event from '../../Models/event.js'
 import job from '../../Models/job.js'
-import { documentToObject, sendEmail,__dirname, randomBytes } from '../../utils.js'
+import { documentToObject, sendEmail,__dirname, randomBytes, fs } from '../../utils.js'
 import adminActions from '../../config/adminActions.js'
 import files from '../../config/filesConfig.js'
+import unitcmdr from '../../Models/unitcmdr.js'
+import fallen from '../../Models/fallen.js'
+import user from '../../Models/user.js'
 env.config()
 const adminRouter = express.Router()
 
@@ -200,42 +203,107 @@ adminRouter.delete('/job', async (req,res) => {
 
 
 //TODO: addunitcmdr - Potentially accept as multi-part/form data
-adminRouter.post('/unitcmdr', files.single('picture') ,(req,res) => {
-    console.log(req.created_document);
-    console.log(req.file.path);
-    console.log("addunitcmdr");
-    return res.status(201).json({privilege: "add unitcmdr route"})
+adminRouter.post('/unitcmdr', files.single('picture') , async (req,res) => {
+
+
+    const doc = req.created_document
+
+    try {
+        const updated = await unitcmdr.findByIdAndUpdate(doc.id, {picture: req.file.path}, {returnDocument: 'after'})
+        if(updated)
+            return res.status(201).json(documentToObject(updated))
+        return res.status(500).json({server_error: "couldn't create resource"})
+    } catch (error) {
+        return res.status(500).json({server_error: "error occured with the server"})
+    }
 })
 
 
 //TODO: Handle removeunitcmdr route
-adminRouter.delete('/unitcmdr', (req,res) => {
-    
-    console.log("removeunitcmdr");
-    return res.status(200).json({privilege: "remove unitcmdr route"})
+adminRouter.delete('/unitcmdr', async (req,res) => {
+    const {id} = req.query;
+
+    if(id)
+    {
+        try {
+            const deleted = await unitcmdr.findByIdAndDelete(id)
+            if(deleted)
+            {
+                fs.unlinkSync(`${__dirname}/${deleted.picture}`)
+                return res.status(200).json(documentToObject(deleted))
+            }
+            return res.status(500).json({server_error: "couldn't delete resource"})
+        } 
+        catch (error) {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    }
+
+    return res.status(400).json({user_error: "invalid fields"})
 })
 
 
 //TODO: addfallen - Potentially accept as multi-part/form data
-adminRouter.post('/fallen', files.single('picture') ,(req,res) => {
+adminRouter.post('/fallen', files.single('picture') , async(req,res) => {
 
-    console.log("addfallen");
-    return res.status(201).json({privilege: "add fallen route"})
+    const doc = req.created_document
+
+    try {
+        const updated = await fallen.findByIdAndUpdate(doc.id, {picture: req.file.path}, {returnDocument: 'after'})
+        if(updated)
+            return res.status(201).json(documentToObject(updated))
+        return res.status(500).json({server_error: "couldn't create resource"})
+    } catch (error) {
+        return res.status(500).json({server_error: "error occured with the server"})
+    }
 })
 
 
 //TODO: Handle removefallen route
-adminRouter.delete('/fallen', (req,res) => {
+adminRouter.delete('/fallen', async (req,res) => {
 
-    console.log("removefallen");
-    return res.status(200).json({privilege: "remove fallen route"})
+    const {id} = req.query;
+
+    if(id)
+    {
+        try {
+            const deleted = await fallen.findByIdAndDelete(id)
+            if(deleted)
+            {
+                fs.unlinkSync(`${__dirname}/${deleted.picture}`)
+                return res.status(200).json(documentToObject(deleted))
+            }
+            return res.status(500).json({server_error: "couldn't delete resource"})
+        } 
+        catch (error) {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    }
+    return res.status(400).json({user_error: "invalid fields"})
 })
 
 
-adminRouter.put('/mentor', (req,res) => {
+adminRouter.put('/mentor', async (req,res) => {
 
-    console.log("addmentor/removementor");
-    return res.status(200).json({privilege: "add/remove mentor route"})
+    const {email,mentor} = req.body;
+
+    if(email)
+    {
+        try {
+            
+            const updated = await user.findOneAndUpdate({email: email}, {mentor: !mentor}, {returnDocument: 'after'})
+            
+            if(updated)
+                return res.status(200).json(documentToObject(updated))
+            
+
+            return res.status(500).json({server_error: "couldn't update resource"})
+            
+        } catch (error) {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    }
+    return res.status(400).json({user_error: "invalid fields"})
 })
 
 

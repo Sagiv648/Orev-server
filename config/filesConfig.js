@@ -11,7 +11,7 @@ const filesLimit = 1024 * 1024 * 10;
 const mimes = ['jpg', 'jpeg', 'png']
 
 const mapping = new Map()
-mapping.set("/profile", (req,cb, origin,mime) => {
+mapping.set("/profile", (req,file,cb, origin,mime) => {
 
     switch (origin) {
         case "destination":
@@ -29,14 +29,16 @@ mapping.set("/profile", (req,cb, origin,mime) => {
 
     
 })
-mapping.set('/fallen', async (req,cb, origin,mime) => {
+mapping.set('/fallen', async (req,file,cb, origin,mime) => {
 
     switch (origin) {
         case "destination":
             cb(null,process.env.FALLEN_FILES_DEST)
+            
             break;
         case "filename":
             const {first_name, last_name, age,recruitment_class} = req.body
+            
             if(first_name && last_name && age && recruitment_class)
             {
                 try {
@@ -56,7 +58,7 @@ mapping.set('/fallen', async (req,cb, origin,mime) => {
 
     
 })
-mapping.set('/unitcmdr', async (req,cb, origin,mime) => {
+mapping.set('/unitcmdr', async (req,file,cb, origin,mime) => {
 
     switch (origin) {
         case "destination":
@@ -64,6 +66,8 @@ mapping.set('/unitcmdr', async (req,cb, origin,mime) => {
             break;
         case "filename":
             const {first_name, last_name, active_years} = req.body
+            
+            
             if(first_name && last_name && active_years)
             {
                 try {
@@ -94,7 +98,7 @@ const storage = diskStorage({
 
         if(mapping.has(keysArr[0])){
 
-            mapping.get(keysArr[0])(req,cb, "destination",null)
+            mapping.get(keysArr[0])(req,file,cb, "destination",null)
         }
         
     },
@@ -105,7 +109,8 @@ const storage = diskStorage({
         
         if((mime && (mime.length == 2)) && mapping.has(keysArr[0])){
             
-            mapping.get(keysArr[0])(req,cb, "filename", mime[1])
+            mapping.get(keysArr[0])(req,file,cb, "filename", mime[1])
+            
         }
             
         else
