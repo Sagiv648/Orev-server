@@ -1,6 +1,6 @@
 import express from 'express'
 import User from '../../Models/user.js'
-import { documentToObject } from '../../utils.js'
+import { documentToObject, readFileSync,__dirname } from '../../utils.js'
 
 const usersRouter = express.Router()
 
@@ -9,7 +9,11 @@ usersRouter.get('/', async(req,res) => {
     if(id)
     { 
         const specificUserProfile = await User.findOne({id: id, private_profile: false})
-        res.status(200).json({Result: specificUserProfile ? documentToObject(specificUserProfile) : []})
+        if(specificUserProfile.avatar){
+            const read = `data:${specificUserProfile.avatar_mime};base64,` + readFileSync(`${__dirname}/${specificUserProfile.avatar}`, 'base64')
+            return res.status(200).json(specificUserProfile ? {...documentToObject(specificUserProfile), uri: read} : [])
+        }
+        return res.status(200).json(specificUserProfile ? documentToObject(specificUserProfile) : [])   
 
     }
     else{
@@ -27,7 +31,16 @@ usersRouter.get('/', async(req,res) => {
         }
 
         const usersByQuery = await User.find(query)
-        res.status(200).json({Result : usersByQuery.length > 0 ? usersByQuery.map(x => documentToObject(x)) : []})
+        const output = usersByQuery.length > 0 ? usersByQuery.map(x => documentToObject(x)) : []
+        for(let i = 0; i < output.length; i++)
+        {
+            if(output[i].avatar)
+            {
+                const read = `data:${output[i].avatar_mime};base64,` + readFileSync(`${__dirname}/${output[i].avatar}`, 'base64')
+                output[i].uri = read
+            }
+        }
+        res.status(200).json(output)
     }
 })
 

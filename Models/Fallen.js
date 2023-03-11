@@ -18,5 +18,6 @@ new Schema({
         type: String,
         required: true
     },
-    picture: String
+    picture: String,
+    picture_mime: String
 }))

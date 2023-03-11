@@ -42,7 +42,7 @@ mapping.set('/fallen', async (req,file,cb, origin,mime) => {
             if(first_name && last_name && age && recruitment_class)
             {
                 try {
-                    const created = await fallen.create({first_name: first_name, last_name: last_name, age: age, recruitment_class: recruitment_class})
+                    const created = await fallen.create({first_name: first_name, last_name: last_name, age: age, recruitment_class: recruitment_class, picture_mime: `image/${mime}`})
                     cb(null, `${created.id}.${mime}`)
                     req.created_document = created
                 } 
@@ -71,7 +71,7 @@ mapping.set('/unitcmdr', async (req,file,cb, origin,mime) => {
             if(first_name && last_name && active_years)
             {
                 try {
-                    const created = await unitcmdr.create({first_name: first_name, last_name: last_name, active_years: active_years})
+                    const created = await unitcmdr.create({first_name: first_name, last_name: last_name, active_years: active_years, picture_mime: `image/${mime}`})
                     cb(null, `${created.id}.${mime}`)
                     req.created_document = created
                 } 
