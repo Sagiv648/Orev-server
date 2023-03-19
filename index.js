@@ -10,7 +10,6 @@ import jwt from 'jsonwebtoken'
 import { exit } from "process";
 import users from './Models/user.js'
 import { auth, emailAuth, passwordRestorationAuth, adminAuth, adminAccessAuth } from "./Controllers/Auth/auth.js";
-import bcryptjs from 'bcryptjs'
 import profileRouter from "./Controllers/Profile/profile.js";
 import unitCmdrsRouter from "./Controllers/UnitCmdrs/unitCmdrs.js";
 import fallenRouter from "./Controllers/Fallen/fallen.js";

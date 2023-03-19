@@ -66,6 +66,5 @@ new Schema({
         type: String,
         default: ""
     },
-    avatar_mime: String
     
 }))

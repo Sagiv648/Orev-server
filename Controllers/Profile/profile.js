@@ -10,32 +10,24 @@ dotenv.config()
 profileRouter.get('/',async (req,res) => {
 
     const id = req.data.id;
-    const details = await users.findById(id)
+    let details;
+    try {
+        details = await users.findById(id)
+    } catch (error) {
+        return res.status(500).json({s_error: "an error occured with the server"})
+    }
+    
     
     const output = documentToObject(details)
     
-    if(details.avatar)
-    {
-        const avatar = `data:image/jpeg;base64,` + readFileSync(`${__dirname}/${details.avatar}`).toString('base64')
-        output.avatar = avatar
-    }
-    
-
     return res.status(200).json(output)
 }) 
-
-
-profileRouter.post('/upload-avatar', (req,res,next) => {
-    console.log(req.body);
-    next();
-}, fileUpload.single('avatar') )
-
 
 //
 //\TODO: PUT profile (edit profile option)
 
 //TODO: Complete removeEmptyFields function on utils.js
-profileRouter.put('/', fileUpload.single('avatar') ,async (req,res) => {
+profileRouter.put('/',async (req,res) => {
 
     const id = req.data.id
     const body = req.body

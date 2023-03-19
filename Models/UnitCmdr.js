@@ -12,5 +12,4 @@ new Schema({
     },
     active_years: String,
     picture: String,
-    picture_mime: String
 }))
