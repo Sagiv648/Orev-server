@@ -100,6 +100,7 @@ app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) =
     const generated_password = randomBytes(7).toString("hex");
     const hashed_password = generated_password;
     const url = req.url.split("?token")
+    
     try {
         const updated = await users.findOneAndUpdate({email: email}, {password: hashed_password}, {returnDocument: 'after'})
         if(updated){

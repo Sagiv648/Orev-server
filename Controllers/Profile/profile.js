@@ -32,8 +32,33 @@ profileRouter.put('/',async (req,res) => {
 
     const id = req.data.id
     const body = req.body
+    
     if(body)
     {
+        const keys = Object.keys(body)
+        let i = 0
+        const fieldsArr = []
+        user.schema.eachPath((pathName, type) => {
+            for(i = 0; i < keys.length; i++)
+                if(keys[i] == pathName)
+                    fieldsArr.push(pathName)
+        })
+
+        for(i = 0; i < keys.length; i++)
+        {
+            let j = 0;
+            for(;j < fieldsArr.length; j++)
+            {
+                if(fieldsArr[j] == keys[i])
+                    break;
+            }
+            if(j == fieldsArr.length)
+                break;
+        }
+
+        if(i < keys.length)
+            return res.status(400).json({user_error: "incorrect fields"})
+
         try 
         {
             const updated = await user.findByIdAndUpdate(id,body,{returnDocument: 'after'})
