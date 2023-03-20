@@ -1,6 +1,6 @@
 import {Schema, model} from "mongoose";
 
-export default model("Fallen", 
+export default model("fallen", 
 new Schema({
     first_name: {
         type: String,
@@ -18,5 +18,8 @@ new Schema({
         type: String,
         required: true
     },
-    picture: String,
+    picture: {
+        type: String,
+        required: true
+    },
 }))

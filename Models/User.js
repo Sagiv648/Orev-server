@@ -1,6 +1,6 @@
 import {Schema, model} from "mongoose";
 
-export default model("Users", 
+export default model("User", 
 new Schema({
     first_name: {
         type: String,

@@ -224,6 +224,7 @@ mongoose.connection.once('open', () => {
         https.createServer(certifcate, app).listen(process.env.PORT | 443)
         http.createServer(app).listen(process.env.PORT | 80)
     } catch (error) {
+        //TODO: CONNECTION ERROR
         console.log(`Error at:\n${error.message}`);
         exit()
     }
@@ -231,6 +232,7 @@ mongoose.connection.once('open', () => {
 })
 
 mongoose.connection.on('error', (err) => {
+    //TODO: CONNECTION ERROR
     console.log(err);
     exit()
 })

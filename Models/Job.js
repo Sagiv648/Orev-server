@@ -1,6 +1,6 @@
 import {Schema, model} from "mongoose";
 
-export default model("Jobs", 
+export default model("job", 
 new Schema({
     job_header: {
         type: String,

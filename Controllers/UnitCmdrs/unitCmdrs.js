@@ -1,9 +1,9 @@
 import  express  from "express";
 import unitCmdrs from '../../Models/unitcmdr.js'
-import { documentToObject,readFileSync,__dirname } from "../../utils.js";
+import { documentToObject,__dirname } from "../../utils.js";
 const unitCmdrsRouter = express.Router()
 
-//\TODO: GET all unit cmdrs
+
 unitCmdrsRouter.get('/', async (req,res) => {
     
     let allCmdr;

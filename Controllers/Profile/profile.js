@@ -1,45 +1,54 @@
 import  express  from "express";
 import users from "../../Models/user.js";
-import { documentToObject, removeEmptyFields } from "../../utils.js";
-import fileUpload from "../../config/filesConfig.js";
+import { documentToObject } from "../../utils.js";
 import dotenv from 'dotenv'
-import { readFileSync,__dirname } from "../../utils.js";
+import { __dirname } from "../../utils.js";
+import user from "../../Models/user.js";
 const profileRouter = express.Router()
 dotenv.config()
-//\TODO: GET profile
+
 profileRouter.get('/',async (req,res) => {
 
     const id = req.data.id;
     let details;
     try {
         details = await users.findById(id)
+        const output = documentToObject(details)
+        if(output)
+            return res.status(200).json(output)
+
+        return res.status(400).json({user_error: "doesn't exist"})
     } catch (error) {
         return res.status(500).json({s_error: "an error occured with the server"})
     }
     
     
-    const output = documentToObject(details)
-    
-    return res.status(200).json(output)
 }) 
 
-//
-//\TODO: PUT profile (edit profile option)
 
-//TODO: Complete removeEmptyFields function on utils.js
+
+//TODO: Refactor - TEST REQUIRED
 profileRouter.put('/',async (req,res) => {
 
     const id = req.data.id
     const body = req.body
+    if(body)
+    {
+        try 
+        {
+            const updated = await user.findByIdAndUpdate(id,body,{returnDocument: 'after'})
+            if(updated)
+                return res.status(200).json(documentToObject(updated))
+
+            return res.status(500).json({server_error: "couldn't update resource"})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    }
+    return res.status(400).json({user_error: "invalid fields"})
     
-    const toUpdate = removeEmptyFields(body)
-    const updated = await users.findOneAndUpdate({_id: id}, req.file ? {...toUpdate, avatar: req.file.path, avatar_mime: req.file.mimetype} : toUpdate,{returnDocument: "after"})
-     if(!updated)
-     return res.status(500).json({error: "Server couldn't update"})
-
-     const output = documentToObject(updated)
-
-    return res.status(200).json(output)
 })
 
 

@@ -1,7 +1,7 @@
 import {Schema, model} from "mongoose";
 
 export default 
-model("Events", 
+model("event", 
 new Schema({
     event_header: String,
     date: {
@@ -18,7 +18,10 @@ new Schema({
             required: true
         }
     },
-    time: String,
+    time: {
+        type: String,
+        required: true
+    },
     description: String,
     email_sending: Boolean
 }))

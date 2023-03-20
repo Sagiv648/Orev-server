@@ -5,6 +5,7 @@ export default async () =>{
         mongoose.connect(process.env.MONGO_CONN_STR)
     }
     catch(err) {
+        //TODO: CONNECTION ERROR
         console.log("ERROR at " + err.message);
         exit()
     }

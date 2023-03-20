@@ -1,6 +1,6 @@
 import {Schema, model} from "mongoose";
 
-export default model("UnitCmdr", 
+export default model("unitcmdr", 
 new Schema({
     first_name: {
         type: String,
@@ -10,6 +10,12 @@ new Schema({
         type: String,
         required: true
     },
-    active_years: String,
-    picture: String,
+    active_years: {
+        type: String,
+        required: true
+    },
+    picture: {
+        type: String,
+        required: true
+    },
 }))

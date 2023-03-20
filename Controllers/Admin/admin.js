@@ -6,7 +6,6 @@ import Event from '../../Models/event.js'
 import job from '../../Models/job.js'
 import { documentToObject, sendEmail,__dirname, randomBytes, fs } from '../../utils.js'
 import adminActions from '../../config/adminActions.js'
-import files from '../../config/filesConfig.js'
 import unitcmdr from '../../Models/unitcmdr.js'
 import fallen from '../../Models/fallen.js'
 import user from '../../Models/user.js'
@@ -149,7 +148,7 @@ adminRouter.delete('/admin', async (req,res) => {
 
 })
 
-//TODO: addjob - Potentially accept as multi-part/form data
+
 adminRouter.post('/job', async (req,res) => {
 
     const {job_header, job_content} = req.body;
@@ -177,7 +176,7 @@ adminRouter.post('/job', async (req,res) => {
 })
 
 
-//TODO: Handle removejobs route
+
 adminRouter.delete('/job', async (req,res) => {
 
     const {id} = req.body
@@ -202,24 +201,30 @@ adminRouter.delete('/job', async (req,res) => {
 })
 
 
-//TODO: addunitcmdr - Potentially accept as multi-part/form data
-adminRouter.post('/unitcmdr', files.single('picture') , async (req,res) => {
+//TODO: Refactor - TEST REQUIRED
+adminRouter.post('/unitcmdr', async (req,res) => {
+    const body = req.body;
+    if(body)
+    {
+        try 
+        {
+            const created = await unitcmdr.create(body)
+            if(created)
+                return res.status(201).json(documentToObject(created))
 
-
-    const doc = req.created_document
-
-    try {
-        const updated = await unitcmdr.findByIdAndUpdate(doc.id, {picture: req.file.path}, {returnDocument: 'after'})
-        if(updated)
-            return res.status(201).json(documentToObject(updated))
-        return res.status(500).json({server_error: "couldn't create resource"})
-    } catch (error) {
-        return res.status(500).json({server_error: "error occured with the server"})
+            return res.status(500).json({server_error: "couldn't create resource"})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
     }
+    return res.status(400).json({user_error: "invalid fields"})
+
 })
 
 
-//TODO: Handle removeunitcmdr route
+
 adminRouter.delete('/unitcmdr', async (req,res) => {
     const {id} = req.query;
 
@@ -229,7 +234,6 @@ adminRouter.delete('/unitcmdr', async (req,res) => {
             const deleted = await unitcmdr.findByIdAndDelete(id)
             if(deleted)
             {
-                fs.unlinkSync(`${__dirname}/${deleted.picture}`)
                 return res.status(200).json(documentToObject(deleted))
             }
             return res.status(500).json({server_error: "couldn't delete resource"})
@@ -243,23 +247,33 @@ adminRouter.delete('/unitcmdr', async (req,res) => {
 })
 
 
-//TODO: addfallen - Potentially accept as multi-part/form data
-adminRouter.post('/fallen', files.single('picture') , async(req,res) => {
+///TODO: Refactor - TEST REQUIRED
+adminRouter.post('/fallen', async(req,res) => {
 
-    const doc = req.created_document
+    const body = req.body;
+    if(body)
+    {
+        try 
+        {
+            const created = await fallen.create(body)
 
-    try {
-        const updated = await fallen.findByIdAndUpdate(doc.id, {picture: req.file.path}, {returnDocument: 'after'})
-        if(updated)
-            return res.status(201).json(documentToObject(updated))
-        return res.status(500).json({server_error: "couldn't create resource"})
-    } catch (error) {
-        return res.status(500).json({server_error: "error occured with the server"})
+            if(created)
+            {
+                return res.status(201).json(documentToObject(created))
+            }
+            return res.status(500).json({server_error: "couldn't create resource"})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
     }
+    return res.status(400).json({user_error: "invalid fields"})
+    
 })
 
 
-//TODO: Handle removefallen route
+
 adminRouter.delete('/fallen', async (req,res) => {
 
     const {id} = req.query;
@@ -270,7 +284,6 @@ adminRouter.delete('/fallen', async (req,res) => {
             const deleted = await fallen.findByIdAndDelete(id)
             if(deleted)
             {
-                fs.unlinkSync(`${__dirname}/${deleted.picture}`)
                 return res.status(200).json(documentToObject(deleted))
             }
             return res.status(500).json({server_error: "couldn't delete resource"})
