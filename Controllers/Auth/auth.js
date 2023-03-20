@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import env from 'dotenv'
 import admin from '../../Models/admin.js'
+import user from '../../Models/user.js'
 import { readFileSync,__dirname } from '../../utils.js'
 env.config()
 
@@ -76,6 +77,21 @@ export const adminAccessAuth = (req,res,next) => {
     else
         return res.status(400).json({user_error: "invalid"})
     
+}
+
+export const mentorAuth = async (req,res,next) => {
+    const {id} = req.data
+    try {
+        const isMentor = await user.findOne({id: id, mentor: true})
+        if(isMentor)
+            next()
+        else
+            return res.status(401).json({user_error: "not a mentor"})
+    } 
+    catch (error) 
+    {
+        return res.status(500).json({server_error: 'error occured with the server'})
+    }
 }
 
 export const emailAuth = (req,res,next) => {

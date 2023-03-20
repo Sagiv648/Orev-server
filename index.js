@@ -16,6 +16,7 @@ import fallenRouter from "./Controllers/Fallen/fallen.js";
 import adminRouter from "./Controllers/Admin/admin.js";
 import usersRouter from "./Controllers/Users/users.js";
 import eventsRouter from "./Controllers/Events/event.js";
+import mentorRouter from "./Controllers/Mentor/mentor.js";
 import admin from "./Models/admin.js";
 import event from "./Models/event.js";
 import cron from 'node-cron'
@@ -49,6 +50,7 @@ app.use('/unitcmdrs',auth, unitCmdrsRouter)
 app.use('/fallen', auth, fallenRouter)
 app.use('/users', auth, usersRouter)
 app.use('/events', auth, eventsRouter)
+app.use('/mentor', auth, mentorRouter)
 
 app.use('/admin/login', cors(), async (req,res) => {
     const {email, password} = req.body;

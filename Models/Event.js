@@ -3,7 +3,10 @@ import {Schema, model} from "mongoose";
 export default 
 model("event", 
 new Schema({
-    event_header: String,
+    event_header: {
+        type: String,
+        required: true
+    },
     date: {
         type: String,
         required: true
