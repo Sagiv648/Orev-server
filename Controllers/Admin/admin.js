@@ -1,14 +1,13 @@
 import express from 'express'
 import admin from '../../Models/admin.js'
-import jwt from 'jsonwebtoken'
 import env from 'dotenv'
-import Event from '../../Models/event.js'
 import job from '../../Models/job.js'
-import { documentToObject, sendEmail,__dirname, randomBytes, fs } from '../../utils.js'
+import { documentToObject, sendEmail,__dirname, randomBytes, isBodyValid } from '../../utils.js'
 import adminActions from '../../config/adminActions.js'
 import unitcmdr from '../../Models/unitcmdr.js'
 import fallen from '../../Models/fallen.js'
 import user from '../../Models/user.js'
+import event from '../../Models/event.js'
 env.config()
 const adminRouter = express.Router()
 
@@ -16,23 +15,23 @@ const adminRouter = express.Router()
 adminRouter.post('/event', async (req,res) => {
 
     const body = req.body
-    
-    const exists = await Event.findOne({event_header: body.event_header})
-    if(exists){
-        res.status(400).json({C_Error: "Name taken"})
-    }
-    else{
-        const created = await Event.create(body)
-        if(created){
+    if(body && isBodyValid(event.schema, body))
+    try {
+        const created = await event.create(body)
+        if(created)
+        {
 
-            
-            
-            res.status(201).json(documentToObject(created))
+            return res.status(201).json(documentToObject(created, ['email_sending']))
         }
         else{
-            res.status(500).json({S_Error: "Couldn't create an event"})
+            return res.status(500).json({S_Error: "Couldn't create an event"})
         }
+    } 
+    catch (error) 
+    {
+        return res.status(500).json({server_error: "error occured with the server"})
     }
+    
     
 })
 
@@ -46,10 +45,10 @@ adminRouter.delete('/event', async (req,res) => {
     const defined = Object.keys(query).reduce((o,key) => query[key].length > 0 ? {...o, [key]: query[key]} : o,{})
     
     if(defined){    
-        const deleted = await Event.find(defined)
+        const deleted = await event.find(defined)
         if(deleted.length >= 1){
             deleted.map(x => x.delete())
-            res.status(200).json({Deleted: deleted.map(x => documentToObject(x))})
+            res.status(200).json({Deleted: deleted.map(x => documentToObject(x, ['email_sending']))})
         }
         else{
             res.status(400).json({C_Error: "Not found"})
@@ -87,7 +86,7 @@ adminRouter.put('/priv', async (req,res) => {
             if(!updated)
                 return res.status(500).json({server_error: "couldn't update"})
 
-            return res.status(200).json(documentToObject(updated))
+            return res.status(200).json(documentToObject(updated, ['password']))
         } 
         catch (error) 
         {
@@ -105,21 +104,29 @@ adminRouter.post('/admin', async (req,res) => {
     const {email} = req.body;
     
     const randomPass = randomBytes(7).toString('hex')
-    const isAdmin = await admin.findOne({email: email})
-    if(isAdmin)
-    return res.status(400).json({user_error: "exists"})
+    try 
+    {
+        const isAdmin = await admin.findOne({email: email})
+        if(isAdmin)
+            return res.status(400).json({user_error: "exists"})
 
-    const created = await admin.create({
-        email: email,
-        password: randomPass,
-        access: []
-    })
-    if(!created)
-    return res.status(500).json({server_error: "couldn't create an admin"})
+        const created = await admin.create({
+            email: email,
+            password: randomPass,
+            access: []
+        })
+        if(!created)
+            return res.status(500).json({server_error: "couldn't create an admin"})
+    } 
+    catch (error) 
+    {
+        return res.status(500).json({server_error: "error occured with the server"})
+    }
+    
     const emailParams = {origin: req.url, target_email: email ,generated_password: randomPass, err: ""}
     const sent = await sendEmail(emailParams)
     if(sent)
-        return res.status(200).json({privilege: "addadmin route"})
+        return res.status(200).json({created: email})
     
     else if(emailParams.err == "EENVELOPE")
         return res.status(400).json({user_error: "invalid email"})
@@ -140,7 +147,7 @@ adminRouter.delete('/admin', async (req,res) => {
         if(!deleted)
             return res.status(400).json({user_error: "admin doesn't exist"})
 
-        return res.status(200).json(documentToObject(deleted))
+        return res.status(200).json(documentToObject(deleted, ['password']))
     } 
     catch (error) {
         return res.status(500).json({server_error: "a problem occured with the server"})
@@ -151,17 +158,14 @@ adminRouter.delete('/admin', async (req,res) => {
 
 adminRouter.post('/job', async (req,res) => {
 
-    const {job_header, job_content} = req.body;
-    if(job_header && job_content)
+    const body = req.body;
+    if(body && isBodyValid(job.schema, body))
     {
         try {
             
-            const created = await job.create({
-                job_header: job_header,
-                job_content: job_content
-            })
+            const created = await job.create(body)
             if(created)
-                return res.status(201).json(documentToObject(created))
+                return res.status(201).json(documentToObject(created, []))
 
         } catch (error) {
             return res.status(500).json({server_error: "error occured with the server"})
@@ -186,7 +190,7 @@ adminRouter.delete('/job', async (req,res) => {
         {
             const deleted = await job.findByIdAndRemove(id)
             if(deleted)
-                return res.status(200).json(documentToObject(deleted))
+                return res.status(200).json(documentToObject(deleted, []))
 
         } 
         catch (error) {
@@ -204,13 +208,13 @@ adminRouter.delete('/job', async (req,res) => {
 //TODO: Refactor - TEST REQUIRED
 adminRouter.post('/unitcmdr', async (req,res) => {
     const body = req.body;
-    if(body)
+    if(body && isBodyValid(unitcmdr.schema, body))
     {
         try 
         {
             const created = await unitcmdr.create(body)
             if(created)
-                return res.status(201).json(documentToObject(created))
+                return res.status(201).json(documentToObject(created, []))
 
             return res.status(500).json({server_error: "couldn't create resource"})
         } 
@@ -234,7 +238,7 @@ adminRouter.delete('/unitcmdr', async (req,res) => {
             const deleted = await unitcmdr.findByIdAndDelete(id)
             if(deleted)
             {
-                return res.status(200).json(documentToObject(deleted))
+                return res.status(200).json(documentToObject(deleted, []))
             }
             return res.status(500).json({server_error: "couldn't delete resource"})
         } 
@@ -251,7 +255,7 @@ adminRouter.delete('/unitcmdr', async (req,res) => {
 adminRouter.post('/fallen', async(req,res) => {
 
     const body = req.body;
-    if(body)
+    if(body && isBodyValid(fallen.schema, body))
     {
         try 
         {
@@ -259,7 +263,7 @@ adminRouter.post('/fallen', async(req,res) => {
 
             if(created)
             {
-                return res.status(201).json(documentToObject(created))
+                return res.status(201).json(documentToObject(created, []))
             }
             return res.status(500).json({server_error: "couldn't create resource"})
         } 
@@ -284,7 +288,7 @@ adminRouter.delete('/fallen', async (req,res) => {
             const deleted = await fallen.findByIdAndDelete(id)
             if(deleted)
             {
-                return res.status(200).json(documentToObject(deleted))
+                return res.status(200).json(documentToObject(deleted, []))
             }
             return res.status(500).json({server_error: "couldn't delete resource"})
         } 
@@ -307,7 +311,7 @@ adminRouter.put('/mentor', async (req,res) => {
             const updated = await user.findOneAndUpdate({email: email}, {mentor: !mentor}, {returnDocument: 'after'})
             
             if(updated)
-                return res.status(200).json(documentToObject(updated))
+                return res.status(200).json(documentToObject(updated, ['password']))
             
 
             return res.status(500).json({server_error: "couldn't update resource"})

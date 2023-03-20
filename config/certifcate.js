@@ -1,6 +1,6 @@
-import fs from 'fs'
+
 import { exit } from 'process';
-import { __dirname } from '../utils.js';
+import { __dirname, fs } from '../utils.js';
 
 
 let key;

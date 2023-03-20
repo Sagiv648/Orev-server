@@ -9,8 +9,16 @@ eventsRouter.get('/', async (req,res) => {
 
     if(id)
     {
-        const specificEvent = await Event.findById(id)
-        res.status(200).json({Result: specificEvent ? documentToObject(specificEvent) : []})
+        try 
+        {
+            const specificEvent = await Event.findById(id)
+            return res.status(200).json({Result: specificEvent ? documentToObject(specificEvent, ['email_sending']) : []})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+        
     }
     else
     {
@@ -26,9 +34,16 @@ eventsRouter.get('/', async (req,res) => {
             }
         }
 
-
-        const eventByQuery = await Event.find(query)
-        res.status(200).json({Result : eventByQuery.length > 0 ? eventByQuery.map(x => documentToObject(x)) : []})
+        try 
+        {
+            const eventByQuery = await Event.find(query)
+            return res.status(200).json({Result : eventByQuery.length > 0 ? eventByQuery.map(x => documentToObject(x, ['email_sending'])) : []})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+        
     }
 
 })

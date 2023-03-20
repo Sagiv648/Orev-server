@@ -8,10 +8,11 @@ env.config()
 export const auth = (req,res,next) => {
     
     const authHeader = req.headers.authorization
-    const token = authHeader && authHeader.split(' ')[1]
+    const splitted = authHeader.split(' ')
+    const token = splitted.length == 2 && splitted[0] == 'Bearer' ? splitted[1] : null
     
     if(!token)
-    return res.status(401).json({Error: "unauthorized"})
+        return res.status(401).json({Error: "unauthorized"})
     else
         jwt.verify(token, process.env.SECRET, (err,payload) => {
             if(err)
@@ -30,7 +31,8 @@ export const auth = (req,res,next) => {
 export const adminAuth = (req,res,next) => {
 
     const authHeader = req.headers.authorization
-    const token = authHeader && authHeader.split(' ')[1]
+    const splitted = authHeader.split(' ')
+    const token = splitted.length == 2 && splitted[0] == 'Bearer' ? splitted[1] : null
     
     if(!token)
     return res.status(401).json({Error: "no token"})

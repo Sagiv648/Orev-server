@@ -17,7 +17,7 @@ import adminRouter from "./Controllers/Admin/admin.js";
 import usersRouter from "./Controllers/Users/users.js";
 import eventsRouter from "./Controllers/Events/event.js";
 import admin from "./Models/admin.js";
-import Event from "./Models/event.js";
+import event from "./Models/event.js";
 import cron from 'node-cron'
 import { __dirname, sendEmail,readFileSync,randomBytes } from "./utils.js";
 import cors from 'cors'
@@ -31,7 +31,7 @@ dbContext()
 cron.schedule(' 0 0 * * *', async () => {
     
     try {
-        const allEvents = await Event.find({})
+        const allEvents = await event.find({})
         allEvents.map(x => (Date.parse(x.date) - Date.now()) <= 0 && x.delete())
         console.log("Events was cleared");
     } catch (error) {

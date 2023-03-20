@@ -5,23 +5,47 @@ import files from 'fs'
 import crypto from 'crypto'
 export const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-export const documentToObject = (doc) => {
-    return Object.keys(doc.toObject()).filter(x => x != 'password' && x != '__v' )
+
+export const isBodyValid = (schema, body) => {
+
+        const keys = Object.keys(body)
+        let i = 0
+        const fieldsArr = []
+        schema.eachPath((pathName, type) => {
+            for(i = 0; i < keys.length; i++)
+                if(keys[i] == pathName)
+                    fieldsArr.push(pathName)
+        })
+
+        for(i = 0; i < keys.length; i++)
+        {
+            let j = 0;
+            for(;j < fieldsArr.length; j++)
+            {
+                if(fieldsArr[j] == keys[i])
+                    break;
+            }
+            if(j == fieldsArr.length)
+                break;
+        }
+
+        return i == keys.length
+}
+
+export const documentToObject = (doc, fieldsToRemove) => {
+
+    return Object.keys(doc.toObject()).filter(x => fieldsToRemove.length > 0 ? 
+        (x != '__v' && !fieldsToRemove.includes(x)) : x != '__v' )
     .reduce((o,key) => ({...o, [key] : doc.toObject()[key]}),{})
+
 }
 
 export const {readFileSync} = files
 export const fs = files
 export const { randomBytes} = crypto
 
-export const removeEmptyFields = (obj) => {
-    return Object.keys(obj).filter(x => obj[x] != '').reduce((o,key) => ({...o, [key] : obj[key]}), {})
-}
 
-//TODO: Add emails
 export const sendEmail = async (params) => {
-    
-
     
     var html = ""
     const subject = "Orev NPO email"
@@ -66,25 +90,4 @@ export const sendEmail = async (params) => {
     
     
 
-}
-
-export const isSubstring = (string, substr) => {
-
-    let i = 0;
-    let j = 0
-    for(i = 0; i < string.length; i++)
-    {
-        if(string[i] == substr[0])
-        {
-            
-            for(j = 0; (i + j) < string.length && j < substr.length; j++)
-            {
-                if(string[i+j] != substr[j])
-                    break;
-            }
-            if(j == substr.length)
-                return true
-        }
-    }
-    return false
 }

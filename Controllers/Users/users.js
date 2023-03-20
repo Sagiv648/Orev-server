@@ -8,11 +8,20 @@ usersRouter.get('/', async(req,res) => {
     const {id} = req.query;
     if(id)
     { 
-        const specificUserProfile = await User.findOne({id: id, private_profile: false})
-        return res.status(200).json(specificUserProfile ? documentToObject(specificUserProfile) : [])   
+        try 
+        {
+            const specificUserProfile = await User.findOne({id: id, private_profile: false})
+            return res.status(200).json(specificUserProfile ? documentToObject(specificUserProfile, ['password', 'private_profile']) : [])   
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+        
 
     }
-    else{
+    else
+    {
         const fields = Object.keys(req.query).reduce((o,key) => req.query[key].length > 0 ? {...o, [key]: req.query[key]} : o, {})
         const query = {...fields, private_profile: false}
 
@@ -25,9 +34,15 @@ usersRouter.get('/', async(req,res) => {
                 
             }
         }
+        try 
+        {
+            const usersByQuery = await User.find(query)
+            return res.status(200).json(usersByQuery.length > 0 ? usersByQuery.map(x => documentToObject(x, ['password', 'private_profile'])) : [])
+        } 
+        catch (error) {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
         
-        const usersByQuery = await User.find(query)
-        res.status(200).json(usersByQuery.length > 0 ? usersByQuery.map(x => documentToObject(x)) : [])
     }
 })
 
