@@ -13,6 +13,7 @@ export default model('mentor_request', new Schema({
         type: String,
         required: true
     },
+    message: String,
     status: {
         type: String,
         default: "OPEN"

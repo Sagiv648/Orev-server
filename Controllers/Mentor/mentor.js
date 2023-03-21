@@ -44,7 +44,25 @@ mentorRouter.get('/requests', mentorAuth, async (req,res) => {
 })
 
 mentorRouter.put('/acceptrequest', mentorAuth, async (req,res) => {
+    const {id} = req.body
 
+    if(id)
+    {
+        try 
+        {
+            const updated = await mentor_request.findByIdAndUpdate(id, {status : "HANDLED"}, {returnDocument: 'after'})
+            .populate('associateUser', {select: 'email phone_number occupation'})
+            if(updated)
+                return res.status(200).json(documentToObject(updated,[]))
+
+            return res.status(500).json({server_error: "couldn't update resource"})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    }
+    return res.status(400).json({user_error: "invalid fields"})
 })
 
 mentorRouter.get('/industries', async (req,res) => {
@@ -65,6 +83,26 @@ mentorRouter.get('/industries', async (req,res) => {
 })
 
 mentorRouter.post('/', async (req,res) => {
+    const {industry,message} = req.body
+    const {id} = req.data
+    if(id && industry)
+    {
+        try 
+        {
+            const created = await mentor_request.create(message ? {associateUser: id, industry: industry, message: message}
+                : {associateUser: id, industry: industry})
+            if(created)
+                return res.status(201).json(documentToObject(created, []))
+
+            return res.status(500).json({server_error: "couldn't create resource"})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    }
+    return res.status(400).json({user_error: "invalid fields"})
+
 
 })
 

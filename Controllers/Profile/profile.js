@@ -3,6 +3,7 @@ import users from "../../Models/user.js";
 import { documentToObject, __dirname, isBodyValid } from "../../utils.js";
 import dotenv from 'dotenv'
 import user from "../../Models/user.js";
+import mentor_request from "../../Models/mentor_request.js";
 const profileRouter = express.Router()
 dotenv.config()
 
@@ -12,7 +13,9 @@ profileRouter.get('/',async (req,res) => {
     let details;
     try {
         details = await users.findById(id)
-        const output = documentToObject(details, ['password'])
+        const requests = await mentor_request.find({associateUser: id})
+        const output = {user : documentToObject(details, ['password']),
+                        mentor_requests: requests.map(x => documentToObject(x, ['associateUser']))}
         if(output)
             return res.status(200).json(output)
 
