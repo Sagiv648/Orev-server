@@ -11,10 +11,12 @@ export const isBodyValid = (schema, body) => {
         const keys = Object.keys(body)
         let i = 0
         const fieldsArr = []
+        
         schema.eachPath((pathName, type) => {
             for(i = 0; i < keys.length; i++)
-                if(keys[i] == pathName)
-                    fieldsArr.push(pathName)
+                if(keys[i] == pathName || pathName.split('.')[0] == keys[i])
+                    fieldsArr.push(keys[i])
+            
         })
 
         for(i = 0; i < keys.length; i++)
@@ -28,7 +30,7 @@ export const isBodyValid = (schema, body) => {
             if(j == fieldsArr.length)
                 break;
         }
-
+        
         return i == keys.length
 }
 

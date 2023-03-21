@@ -14,7 +14,7 @@ mentorRouter.get('/requests', mentorAuth, async (req,res) => {
         {
             const specificRequest = await mentor_request.findById(id).
             populate('associateUser', 
-            {select: '_id email first_name last_name phone_number recruitment_class city occupation' })
+            '_id email first_name last_name phone_number recruitment_class city occupation' )
             
             if(specificRequest)
                 return res.status(200).json(documentToObject(specificRequest, []))
@@ -23,22 +23,24 @@ mentorRouter.get('/requests', mentorAuth, async (req,res) => {
         } 
         catch (error) 
         {
+            console.log(error.message);
             return res.status(500).json({server_error: "error occured with the server"})
         }
     }
     try 
     {
-        const allRequests = mentor_request.find({}).
+        const allRequests = await mentor_request.find({}).
         populate('associateUser', 
-        {select: '_id email first_name last_name phone_number recruitment_class city occupation' })
+        '_id email first_name last_name phone_number recruitment_class city occupation')
         
         
-        return res.status(200).json(allRequests ? allRequests.map((o) => documentToObject(o)) : [])
+        return res.status(200).json(allRequests ? allRequests.map((o) => documentToObject(o,[])) : [])
 
         
     } 
     catch (error) 
     {
+        console.log(error.message);
         return res.status(500).json({server_error: "error occured with the server"})
     }
 })
@@ -51,7 +53,7 @@ mentorRouter.put('/acceptrequest', mentorAuth, async (req,res) => {
         try 
         {
             const updated = await mentor_request.findByIdAndUpdate(id, {status : "HANDLED"}, {returnDocument: 'after'})
-            .populate('associateUser', {select: 'email phone_number occupation'})
+            .populate('associateUser', '_id email phone_number occupation github_link instagram_link facebook_link linkedin_link')
             if(updated)
                 return res.status(200).json(documentToObject(updated,[]))
 

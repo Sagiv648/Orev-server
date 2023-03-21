@@ -11,40 +11,43 @@ import event from '../../Models/event.js'
 env.config()
 const adminRouter = express.Router()
 
-//\TODO: Create an event
-adminRouter.post('/event', async (req,res) => {
 
+adminRouter.post('/event', async (req,res) => {
+    
     const body = req.body
     if(body && isBodyValid(event.schema, body))
-    try {
-        const created = await event.create(body)
-        if(created)
-        {
-
-            return res.status(201).json(documentToObject(created, ['email_sending']))
-        }
-        else{
-            return res.status(500).json({S_Error: "Couldn't create an event"})
-        }
-    } 
-    catch (error) 
     {
-        return res.status(500).json({server_error: "error occured with the server"})
+        try {
+            const created = await event.create(body)
+            if(created)
+            {
+    
+                return res.status(201).json(documentToObject(created, ['email_sending']))
+            }
+            else{
+                return res.status(500).json({S_Error: "Couldn't create an event"})
+            }
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
     }
+    return res.status(400).json({user_error: "invalid fields"})
     
     
 })
 
 
-//\TODO: Delete event
+//TODO: Refactor for id and event_header
 adminRouter.delete('/event', async (req,res) => {
     
     //Query strings:
     //Id,Header
     const query = req.query
     const defined = Object.keys(query).reduce((o,key) => query[key].length > 0 ? {...o, [key]: query[key]} : o,{})
-    
-    if(defined){    
+    console.log(defined);
+    if(Object.keys(defined).length > 0){    
         const deleted = await event.find(defined)
         if(deleted.length >= 1){
             deleted.map(x => x.delete())
@@ -62,7 +65,7 @@ adminRouter.delete('/event', async (req,res) => {
 })
 
 
-//TODO: Handle updatepriv route
+
 adminRouter.put('/priv', async (req,res) => {
 
     const {access, email} = req.body;
@@ -205,7 +208,7 @@ adminRouter.delete('/job', async (req,res) => {
 })
 
 
-//TODO: Refactor - TEST REQUIRED
+
 adminRouter.post('/unitcmdr', async (req,res) => {
     const body = req.body;
     if(body && isBodyValid(unitcmdr.schema, body))
@@ -251,7 +254,7 @@ adminRouter.delete('/unitcmdr', async (req,res) => {
 })
 
 
-///TODO: Refactor - TEST REQUIRED
+
 adminRouter.post('/fallen', async(req,res) => {
 
     const body = req.body;

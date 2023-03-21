@@ -1,4 +1,5 @@
 import express from 'express'
+import mongoose from 'mongoose'
 import Event from '../../Models/event.js'
 import { documentToObject } from '../../utils.js'
 const eventsRouter = express.Router()
@@ -11,6 +12,9 @@ eventsRouter.get('/', async (req,res) => {
     {
         try 
         {
+            if(!mongoose.Types.ObjectId.isValid(id))
+                return res.status(400).json({user_error: "invalid id"})
+
             const specificEvent = await Event.findById(id)
             return res.status(200).json({Result: specificEvent ? documentToObject(specificEvent, ['email_sending']) : []})
         } 

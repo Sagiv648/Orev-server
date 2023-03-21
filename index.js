@@ -55,9 +55,10 @@ app.use('/mentor', auth, mentorRouter)
 app.use('/admin/login', cors(), async (req,res) => {
     const {email, password} = req.body;
     const exists = await admin.findOne({email: email})
-    console.log(exists);
+    
     if(!exists)
-    return res.status(400).json({Error: "user doesn't exist"})
+        return res.status(400).json({Error: "user doesn't exist"})
+
     if(exists.password == password)
     {
         const toTokenize = {
