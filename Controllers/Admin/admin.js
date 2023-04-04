@@ -68,7 +68,7 @@ adminRouter.delete('/event', async (req,res) => {
 
 adminRouter.put('/priv', async (req,res) => {
 
-    const {access, email} = req.body;
+    const {access, email, role} = req.body;
     if(access && email)
     {
         const privs = []
@@ -100,6 +100,7 @@ adminRouter.put('/priv', async (req,res) => {
     return res.status(400).json({user_error: "invalid fields"})
     
 })
+
 
 
 adminRouter.post('/admin', async (req,res) => {

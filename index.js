@@ -20,8 +20,9 @@ import mentorRouter from "./Controllers/Mentor/mentor.js";
 import admin from "./Models/admin.js";
 import event from "./Models/event.js";
 import cron from 'node-cron'
-import { __dirname, sendEmail,readFileSync,randomBytes } from "./utils.js";
+import { __dirname, sendEmail,readFileSync,randomBytes, documentToObject } from "./utils.js";
 import cors from 'cors'
+
 
 const app = express()
 dotenv.config()
@@ -52,7 +53,7 @@ app.use('/users', auth, usersRouter)
 app.use('/events', auth, eventsRouter)
 app.use('/mentor', auth, mentorRouter)
 
-app.use('/admin/login', cors(), async (req,res) => {
+app.post('/admin/login', cors(), async (req,res) => {
     const {email, password} = req.body;
     const exists = await admin.findOne({email: email})
     
@@ -77,6 +78,29 @@ app.use('/admin/login', cors(), async (req,res) => {
 })
 app.use('/admin', cors(), adminAuth, adminAccessAuth ,adminRouter)
 
+app.put('/admin/role', cors(), adminAuth ,async( req,res) => {
+    const {id, role} = req.body;
+    if(id && role)
+    {
+        try 
+        {
+            const user = await users.findByIdAndUpdate(id, {role: role}, {returnDocument: 'after'}).
+            select('-password').
+            select('-__v')
+            if(user)
+                return res.status(200).json({updated: user})
+            return res.status(400).json({user_error: "no account"})
+        } 
+        catch (error) {
+            
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    }
+    return res.status(400).json({user_error: "invalid fields"})
+    
+})
+
+
 app.post('/login', async (req,res) => {
     //authorization
     const email = req.body.email;
@@ -87,6 +111,7 @@ app.post('/login', async (req,res) => {
     return res.status(401).json({error: "user error"})
 
     
+
     if(user.password != password)
     return res.status(401).json({error: "user error"})
     
@@ -133,6 +158,7 @@ app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) =
 })
 
 app.post('/passwordrestoration', async (req,res) => {
+
     const {email} = req.body;
     try {
         const user = await users.findOne({email: email})
@@ -141,6 +167,7 @@ app.post('/passwordrestoration', async (req,res) => {
     } catch (error) {
         return res.status(500).json({server_error: "a problem occured with the server"})
     }
+
     
 
     const toEmailTokenize = {

@@ -2,6 +2,7 @@ import express from 'express'
 import User from '../../Models/user.js'
 import { documentToObject,__dirname } from '../../utils.js'
 
+
 const usersRouter = express.Router()
 
 usersRouter.get('/', async(req,res) => {
@@ -44,6 +45,19 @@ usersRouter.get('/', async(req,res) => {
         }
         
     }
+})
+
+
+usersRouter.get('/roles', async (req,res) => {
+
+    try {
+        const allRoles = await User.find({role: {$ne: 'User'}}, '-password -__v')
+        return res.status(200).json(allRoles)
+    } 
+    catch (error) {
+        res.status(500).json({server_error: "error occured with the server"})
+    }
+
 })
 
 export default usersRouter
