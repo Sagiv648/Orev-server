@@ -1,4 +1,4 @@
-import {Schema, model} from "mongoose";
+import {Mongoose, Schema, model} from "mongoose";
 
 export default model("admin", 
 new Schema({
@@ -6,9 +6,9 @@ new Schema({
         type: String,
         required: true
     },
-    password: {
-        type: String,
-        required: true
+    associateUser: {
+        type: Schema.Types.ObjectId,
+        ref: "user"
     },
     access: {
         type: Array,

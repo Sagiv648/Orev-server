@@ -8,6 +8,9 @@ env.config()
 
 export const auth = (req,res,next) => {
     
+    if(!req.headers.authorization.startsWith("Bearer"))
+        return res.status(400).json({error: "no token"})
+
     const authHeader = req.headers.authorization
     const splitted = authHeader.split(' ')
     const token = splitted.length == 2 && splitted[0] == 'Bearer' ? splitted[1] : null
@@ -15,21 +18,34 @@ export const auth = (req,res,next) => {
     if(!token)
         return res.status(401).json({Error: "unauthorized"})
     else
-        jwt.verify(token, process.env.SECRET, (err,payload) => {
+        jwt.verify(token, process.env.SECRET, async (err,payload) => {
             if(err)
             {
                 return res.status(403).json({error: "unauthorized"})
 
             }
             else{
-                console.log("normal auth - normal payload");
                 req.data = payload
-                next()
+                try {
+                    const exists = await user.findById(payload.id)
+                    if(exists)
+                        next()
+                    else
+                        return res.status(403).json({error: "unauthorized"})
+                } 
+                catch (error) {
+                    return res.status(500).json({server_error: "error occured with the server"})
+                }
+
             }
             
         })
 }
 export const adminAuth = (req,res,next) => {
+
+    if(!req.headers.authorization.startsWith("Bearer"))
+        return res.status(400).json({error: "no token"})
+
 
     const authHeader = req.headers.authorization
     const splitted = authHeader.split(' ')
@@ -45,7 +61,6 @@ export const adminAuth = (req,res,next) => {
 
             }
             else{
-                console.log("admin auth - admin payload");
                 req.data = payload
                 try {
                     const exists = await admin.findById(payload.id)
@@ -95,24 +110,25 @@ export const mentorAuth = async (req,res,next) => {
 }
 
 export const emailAuth = (req,res,next) => {
+
     const {token} = req.query;
     if(!token)
-    return res.status(401).json({user_error: "no token"})
+        return res.status(401).json({user_error: "no token"})
+
     jwt.verify(token, process.env.EMAIL_CONFIRMATION_SECRET, (err,payload) => {
         
         if(err){
             const html = readFileSync(`${__dirname}/html/invalidEmailToken/index.html`).toString();
-            return res.status(400).send(html)
+                return res.status(400).send(html)
         }
         
-
-        console.log("email auth");
         req.data = payload;
         next();
     })
 }
 
 export const passwordRestorationAuth = (req,res,next) => {
+
     const {token} = req.query
     if(!token)
     return res.status(401).json({user_error: "no token"})
@@ -123,7 +139,7 @@ export const passwordRestorationAuth = (req,res,next) => {
             const html = readFileSync(`${__dirname}/html/invalidPasswordRestorationEmail/index.html`).toString();
             return res.status(400).send(html)
         }
-        console.log("password restoration auth");
+        
         req.data = payload;
         next();
     })

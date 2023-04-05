@@ -7,19 +7,16 @@ const mentorRouter = express.Router()
 
 
 mentorRouter.get('/requests', mentorAuth, async (req,res) => {
+
     const {id} = req.query
     if(id)
     {
         try 
         {
-            const specificRequest = await mentor_request.findById(id).
-            populate('associateUser', 
-            '_id email first_name last_name phone_number recruitment_class city occupation' )
+            const specificRequest = await mentor_request.findById(id)
+            .populate('associateUser', '-password -__v' )
+            return res.status(200).json(specificRequest)
             
-            if(specificRequest)
-                return res.status(200).json(documentToObject(specificRequest, []))
-            
-            return res.status(500).json({server_error: "couldn't fetch the resource"})
         } 
         catch (error) 
         {
@@ -31,10 +28,9 @@ mentorRouter.get('/requests', mentorAuth, async (req,res) => {
     {
         const allRequests = await mentor_request.find({}).
         populate('associateUser', 
-        '_id email first_name last_name phone_number recruitment_class city occupation')
+        '-password -__v')
         
-        
-        return res.status(200).json(allRequests ? allRequests.map((o) => documentToObject(o,[])) : [])
+        return res.status(200).json(allRequests)
 
         
     } 
@@ -53,11 +49,10 @@ mentorRouter.put('/acceptrequest', mentorAuth, async (req,res) => {
         try 
         {
             const updated = await mentor_request.findByIdAndUpdate(id, {status : "HANDLED"}, {returnDocument: 'after'})
-            .populate('associateUser', '_id email phone_number occupation github_link instagram_link facebook_link linkedin_link')
-            if(updated)
-                return res.status(200).json(documentToObject(updated,[]))
+            .populate('associateUser', '-password -__v')
 
-            return res.status(500).json({server_error: "couldn't update resource"})
+            return res.status(200).json(updated)
+            
         } 
         catch (error) 
         {
@@ -71,6 +66,7 @@ mentorRouter.get('/industries', async (req,res) => {
 
     try 
     {
+
         const allIndustries = await user.find({mentor: true})
 
         const set = new Set(allIndustries.map(x => x.occupation))
@@ -85,18 +81,19 @@ mentorRouter.get('/industries', async (req,res) => {
 })
 
 mentorRouter.post('/', async (req,res) => {
+
     const {industry,message} = req.body
     const {id} = req.data
+
     if(id && industry)
     {
         try 
         {
             const created = await mentor_request.create(message ? {associateUser: id, industry: industry, message: message}
                 : {associateUser: id, industry: industry})
-            if(created)
-                return res.status(201).json(documentToObject(created, []))
 
-            return res.status(500).json({server_error: "couldn't create resource"})
+            return res.status(201).json(created)
+            
         } 
         catch (error) 
         {

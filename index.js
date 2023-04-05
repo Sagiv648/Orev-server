@@ -30,7 +30,7 @@ dbContext()
 
 
 //authorization: Bearer [token]
-cron.schedule(' 0 0 * * *', async () => {
+cron.schedule(' 0 0 * * 0', async () => {
     
     try {
         const allEvents = await event.find({})
@@ -55,28 +55,35 @@ app.use('/mentor', auth, mentorRouter)
 
 app.post('/admin/login', cors(), async (req,res) => {
     const {email, password} = req.body;
-    const exists = await admin.findOne({email: email})
-    
-    if(!exists)
-        return res.status(400).json({Error: "user doesn't exist"})
 
-    if(exists.password == password)
-    {
-        const toTokenize = {
-            
-            id: exists.id,
-            access: exists.access
+    try {
+
+        const exists = await admin.findOne({email: email})
+        .populate('associateUser', 'password')
+        console.log(exists);
+        if(!exists)
+            return res.status(400).json({Error: "user doesn't exist"})
+
+        if(exists.associateUser.password == password)
+        {
+            const toTokenize = {
+                
+                id: exists.id,
+                access: exists.access
+            }
+            const token = jwt.sign(toTokenize, process.env.ADMIN_SECRET, {expiresIn: '24h'})
+            return res.status(200).json({token:token})
         }
-        const token = jwt.sign(toTokenize, process.env.ADMIN_SECRET, {expiresIn: '24h'})
-        return res.status(200).json({token: token, user: {
-            email: exists.email,
-            access: exists.access
-        }})
+        return res.status(400).json({Error: "unauthorized"})
+
+    } catch (error) {
+        
+        return res.status(500).json({server_error: "error occured with the server"})
     }
-    return res.status(400).json({Error: "unauthorized"})
-    
+        
 })
 app.use('/admin', cors(), adminAuth, adminAccessAuth ,adminRouter)
+
 
 app.put('/admin/role', cors(), adminAuth ,async( req,res) => {
     const {id, role} = req.body;
@@ -106,20 +113,31 @@ app.post('/login', async (req,res) => {
     const email = req.body.email;
     const password = req.body.password
     
-    const user = await users.findOne({email: email}).exec()
-    if(!user)
-    return res.status(401).json({error: "user error"})
+    if(email && password)
+    {
+        try 
+        {
+            const user = await users.findOne({email: email})
+            if(!user)
+                return res.status(401).json({error: "user error"})
 
-    
+            if(user.password != password)
+                return res.status(401).json({error: "user error"})
 
-    if(user.password != password)
-    return res.status(401).json({error: "user error"})
-    
-    const toTokenize = {
-        id: user.id
+            const toTokenize = {
+                id: user.id
+            }
+            const token = jwt.sign(toTokenize,process.env.SECRET)
+            return res.status(200).json({token: token})
+        } 
+        catch (error) {
+        
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
     }
-    const token = jwt.sign(toTokenize,process.env.SECRET)
-    res.status(200).json({token: token})
+    return res.status(400).json({user_error: "invalid fields"})
+
+    
 })
 
 app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) => {
@@ -131,7 +149,9 @@ app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) =
     
     try {
         const updated = await users.findOneAndUpdate({email: email}, {password: hashed_password}, {returnDocument: 'after'})
-        if(updated){
+        
+        if(updated)
+        {
 
             const emailParams = {origin: url[0], target_email: email, generated_password: generated_password, err: ""}
             const emailSent = await sendEmail(emailParams)
@@ -164,31 +184,36 @@ app.post('/passwordrestoration', async (req,res) => {
         const user = await users.findOne({email: email})
         if(!user)
             return res.status(400).json({error: "doesn't exist"})
+
+        const toEmailTokenize = {
+            email: email
+        }
+
+        const emailToken = jwt.sign(toEmailTokenize,process.env.PASSWORD_RESTORATION_SECRET,{expiresIn: '24h'})
+        const resetEndpoint = `http://${process.env.HOST}/verifypasswordrestoration?token=${emailToken}`
+        const emailParams = {origin: req.url, target_email: email, resetEndpoint: resetEndpoint, err: ""}
+        const emailSent = await sendEmail(emailParams)
+
+        if(emailSent)
+            return res.status(200).json({accepted: "email sent"})
+
+        else if(emailParams.err == "EENVELOPE")
+            return res.status(400).json({user_error: "invalid email"})
+
+        else if(emailParams.err == "invalid origin")
+            return res.status(400).json({user_error: "invalid email sending origin"})
+
+        return res.status(500).json({server_error: "couldn't send an email"})
+    
     } catch (error) {
         return res.status(500).json({server_error: "a problem occured with the server"})
     }
 
     
 
-    const toEmailTokenize = {
-        email: email
-    }
-    const emailToken = jwt.sign(toEmailTokenize,process.env.PASSWORD_RESTORATION_SECRET,{expiresIn: '24h'})
-    const resetEndpoint = `http://${process.env.HOST}/verifypasswordrestoration?token=${emailToken}`
-    const emailParams = {origin: req.url, target_email: email, resetEndpoint: resetEndpoint, err: ""}
 
     
-    const emailSent = await sendEmail(emailParams)
-    if(emailSent)
-        return res.status(200).json({accepted: "email sent"})
-
-    else if(emailParams.err == "EENVELOPE")
-        return res.status(400).json({user_error: "invalid email"})
-
-    else if(emailParams.err == "invalid origin")
-        return res.status(400).json({user_error: "invalid email sending origin"})
-
-    return res.status(500).json({server_error: "couldn't send an email"})
+    
     
 })
 
@@ -215,45 +240,56 @@ app.post('/register', async (req,res) => {
 
     const email = req.body.email;
     const password = req.body.password
+    if(email && password)
+    {
+        try 
+        {
+            const user = await users.findOne({email: email})
+            if(user)
+                return res.status(400).json({error: "exists"})
 
-    const user = await users.findOne({email: email})
-    if(user)
-        return res.status(400).json({error: "exists"})
+            const toEmailTokenize = {
+                email: email,
+                password: password
+            }
 
-    const toEmailTokenize = {
-        email: email,
-        password: password
+            const emailToken = jwt.sign(toEmailTokenize,process.env.EMAIL_CONFIRMATION_SECRET,{expiresIn: '15m'})
+            const verification_endpoint = `http://${process.env.HOST}/verifyemail?token=${emailToken}`
+            const emailParams = {origin: req.url, target_email: email, verificationEndpoint: verification_endpoint, err: ""}
+            
+            const emailSent = await sendEmail(emailParams)
+            if(emailSent)
+                return res.status(200).json({accepted: "email sent"})
+        
+            else if(emailParams.err == "EENVELOPE")
+                return res.status(400).json({user_error: "invalid email"})
+        
+            else if(emailParams.err == "invalid origin")
+                return res.status(400).json({user_error: "invalid email sending origin"})
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "couldn't send an email"})
+        }
     }
-    const emailToken = jwt.sign(toEmailTokenize,process.env.EMAIL_CONFIRMATION_SECRET,{expiresIn: '15m'})
-    const verification_endpoint = `http://${process.env.HOST}/verifyemail?token=${emailToken}`
-    const emailParams = {origin: req.url, target_email: email, verificationEndpoint: verification_endpoint, err: ""}
-
     
-    const emailSent = await sendEmail(emailParams)
-    if(emailSent)
-        return res.status(200).json({accepted: "email sent"})
-
-    else if(emailParams.err == "EENVELOPE")
-        return res.status(400).json({user_error: "invalid email"})
-
-    else if(emailParams.err == "invalid origin")
-        return res.status(400).json({user_error: "invalid email sending origin"})
-
-    return res.status(500).json({server_error: "couldn't send an email"})
-    
+    return res.status(400).json({user_error: "invalid fields"})
 
 })
 
 
 app.use((req,res) => {
+
     return res.status(404).json({Error: "Resource not found"})
 })
 
 mongoose.connection.once('open', () => {
 
     try {
+
         https.createServer(certifcate, app).listen(process.env.PORT | 443)
         http.createServer(app).listen(process.env.PORT | 80)
+        
     } catch (error) {
         //TODO: CONNECTION ERROR
         console.log(`Error at:\n${error.message}`);

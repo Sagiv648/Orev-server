@@ -6,45 +6,27 @@ import { documentToObject,__dirname } from '../../utils.js'
 const usersRouter = express.Router()
 
 usersRouter.get('/', async(req,res) => {
-    const {id} = req.query;
-    if(id)
-    { 
-        try 
-        {
-            const specificUserProfile = await User.findOne({id: id, private_profile: false})
-            return res.status(200).json(specificUserProfile ? documentToObject(specificUserProfile, ['password', 'private_profile']) : [])   
-        } 
-        catch (error) 
-        {
-            return res.status(500).json({server_error: "error occured with the server"})
-        }
-        
+    
+        const {first_name, last_name} = req.query;
 
-    }
-    else
-    {
-        const fields = Object.keys(req.query).reduce((o,key) => req.query[key].length > 0 ? {...o, [key]: req.query[key]} : o, {})
-        const query = {...fields, private_profile: false}
+        let query = {private_profile: false}
+        if(first_name)
+            query["first_name"] = {$regex: first_name}
+        if(last_name)
+            query["last_name"] = {$regex: last_name}
 
-        const keys =Object.keys(query)
-        for(let key in keys)
-        {
-            if(keys[key] == "first_name" || keys[key] == "last_name" || keys[key] == "occupation")
-            {
-                query[keys[key]] = {$regex: query[keys[key]]}
-                
-            }
-        }
+    
         try 
         {
             const usersByQuery = await User.find(query)
-            return res.status(200).json(usersByQuery.length > 0 ? usersByQuery.map(x => documentToObject(x, ['password', 'private_profile'])) : [])
+            .select('-password')
+            .select('-__v')
+            return res.status(200).json(usersByQuery)
         } 
         catch (error) {
             return res.status(500).json({server_error: "error occured with the server"})
         }
         
-    }
 })
 
 

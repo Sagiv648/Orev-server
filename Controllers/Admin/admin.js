@@ -22,7 +22,7 @@ adminRouter.post('/event', async (req,res) => {
             if(created)
             {
     
-                return res.status(201).json(documentToObject(created, ['email_sending']))
+                return res.status(201).json(created)
             }
             else{
                 return res.status(500).json({S_Error: "Couldn't create an event"})
@@ -43,24 +43,39 @@ adminRouter.post('/event', async (req,res) => {
 adminRouter.delete('/event', async (req,res) => {
     
     //Query strings:
-    //Id,Header
-    const query = req.query
-    const defined = Object.keys(query).reduce((o,key) => query[key].length > 0 ? {...o, [key]: query[key]} : o,{})
-    console.log(defined);
-    if(Object.keys(defined).length > 0){    
-        const deleted = await event.find(defined)
-        if(deleted.length >= 1){
-            deleted.map(x => x.delete())
-            res.status(200).json({Deleted: deleted.map(x => documentToObject(x, ['email_sending']))})
+    //Id
+    const {id} = req.query
+    const {ids} = req.body
+    if(id)
+    {
+
+        try 
+        {
+             const deleted = await event.findByIdAndDelete(id,{returnDocument: 'after'})
+             return res.status(200).json(deleted)
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured"})
         }
-        else{
-            res.status(400).json({C_Error: "Not found"})
+        
+    }
+    else if(ids)
+    {
+        try 
+        {
+            const specifiedDeleted = await event.deleteMany({_id: {$in: ids}}, {returnDocument: 'after'})
+            return res.status(200).json(specifiedDeleted)
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured"})
         }
+
+
+        
     }
-    else{
-        return res.status(400).json({C_Error: "No specification"})
-    }
-    
+    return res.status(400).json({C_Error: "No specification"})
     
 })
 
@@ -68,7 +83,7 @@ adminRouter.delete('/event', async (req,res) => {
 
 adminRouter.put('/priv', async (req,res) => {
 
-    const {access, email, role} = req.body;
+    const {access, email} = req.body;
     if(access && email)
     {
         const privs = []
@@ -84,12 +99,16 @@ adminRouter.put('/priv', async (req,res) => {
         }
         
         try {
+
             const updated = await admin.findOneAndUpdate({email: email},
                 {access: adminActions.length == privs.length ? ['*'] : privs}, {returnDocument: 'after'})
+                .select('-password')
+                .select('-__v')
+                
             if(!updated)
                 return res.status(500).json({server_error: "couldn't update"})
 
-            return res.status(200).json(documentToObject(updated, ['password']))
+            return res.status(200).json(updated)
         } 
         catch (error) 
         {
@@ -107,51 +126,44 @@ adminRouter.post('/admin', async (req,res) => {
 
     const {email} = req.body;
     
-    const randomPass = randomBytes(7).toString('hex')
-    try 
+    if(email)
     {
-        const isAdmin = await admin.findOne({email: email})
-        if(isAdmin)
-            return res.status(400).json({user_error: "exists"})
-
-        const created = await admin.create({
-            email: email,
-            password: randomPass,
-            access: []
-        })
-        if(!created)
-            return res.status(500).json({server_error: "couldn't create an admin"})
-    } 
-    catch (error) 
-    {
-        return res.status(500).json({server_error: "error occured with the server"})
+        try 
+        {
+            const isAdmin = await admin.findOne({email: email})
+            if(isAdmin)
+                return res.status(400).json({user_error: "exists"})
+            const userAdmin = await user.findOne({email: email}).select('_id')
+            const created = await admin.create({
+                email: email,
+                associateUser: userAdmin._id,
+                access: []
+            })
+            if(!created)
+                return res.status(500).json({server_error: "couldn't create an admin"})
+            return res.status(201).json(created)
+        } 
+        catch (error) 
+        {
+            return res.status(500).json({server_error: "error occured with the server"})
+        }
+    
     }
+    return res.status(400).json({user_error: "invalid fields"})
     
-    const emailParams = {origin: req.url, target_email: email ,generated_password: randomPass, err: ""}
-    const sent = await sendEmail(emailParams)
-    if(sent)
-        return res.status(200).json({created: email})
-    
-    else if(emailParams.err == "EENVELOPE")
-        return res.status(400).json({user_error: "invalid email"})
-
-    else if(emailParams.err == "invalid origin")
-        return res.status(400).json({user_error: "invalid email sending origin"})    
-        
-    return res.status(500).json({server_error: "couldn't send an email"})
 })
 
 
 adminRouter.delete('/admin', async (req,res) => {
 
-    const {email} = req.body;
+    const {id} = req.body;
 
     try {
-        const deleted = await admin.findOneAndRemove({email: email})
+        const deleted = await admin.findByIdAndDelete(id,{returnDocument: 'after'}).select('-__v')
         if(!deleted)
             return res.status(400).json({user_error: "admin doesn't exist"})
 
-        return res.status(200).json(documentToObject(deleted, ['password']))
+        return res.status(200).json(deleted)
     } 
     catch (error) {
         return res.status(500).json({server_error: "a problem occured with the server"})
@@ -169,7 +181,7 @@ adminRouter.post('/job', async (req,res) => {
             
             const created = await job.create(body)
             if(created)
-                return res.status(201).json(documentToObject(created, []))
+                return res.status(201).json(created)
 
         } catch (error) {
             return res.status(500).json({server_error: "error occured with the server"})
@@ -192,9 +204,9 @@ adminRouter.delete('/job', async (req,res) => {
     {
         try 
         {
-            const deleted = await job.findByIdAndRemove(id)
+            const deleted = await job.findByIdAndRemove(id, {returnDocument: 'after'}).select('-__v')
             if(deleted)
-                return res.status(200).json(documentToObject(deleted, []))
+                return res.status(200).json(deleted)
 
         } 
         catch (error) {
@@ -211,6 +223,7 @@ adminRouter.delete('/job', async (req,res) => {
 
 
 adminRouter.post('/unitcmdr', async (req,res) => {
+
     const body = req.body;
     if(body && isBodyValid(unitcmdr.schema, body))
     {
@@ -218,7 +231,7 @@ adminRouter.post('/unitcmdr', async (req,res) => {
         {
             const created = await unitcmdr.create(body)
             if(created)
-                return res.status(201).json(documentToObject(created, []))
+                return res.status(201).json(created)
 
             return res.status(500).json({server_error: "couldn't create resource"})
         } 
@@ -239,10 +252,10 @@ adminRouter.delete('/unitcmdr', async (req,res) => {
     if(id)
     {
         try {
-            const deleted = await unitcmdr.findByIdAndDelete(id)
+            const deleted = await unitcmdr.findByIdAndDelete(id, {returnDocument: 'after'}).select('-__v')
             if(deleted)
             {
-                return res.status(200).json(documentToObject(deleted, []))
+                return res.status(200).json(deleted)
             }
             return res.status(500).json({server_error: "couldn't delete resource"})
         } 
@@ -267,7 +280,7 @@ adminRouter.post('/fallen', async(req,res) => {
 
             if(created)
             {
-                return res.status(201).json(documentToObject(created, []))
+                return res.status(201).json(created)
             }
             return res.status(500).json({server_error: "couldn't create resource"})
         } 
@@ -289,10 +302,10 @@ adminRouter.delete('/fallen', async (req,res) => {
     if(id)
     {
         try {
-            const deleted = await fallen.findByIdAndDelete(id)
+            const deleted = await fallen.findByIdAndDelete(id, {returnDocument: 'after'}).select('-__v')
             if(deleted)
             {
-                return res.status(200).json(documentToObject(deleted, []))
+                return res.status(200).json(deleted)
             }
             return res.status(500).json({server_error: "couldn't delete resource"})
         } 
@@ -313,9 +326,11 @@ adminRouter.put('/mentor', async (req,res) => {
         try {
             
             const updated = await user.findOneAndUpdate({email: email}, {mentor: !mentor}, {returnDocument: 'after'})
+            .select('-__v')
+            .select('-password')
             
             if(updated)
-                return res.status(200).json(documentToObject(updated, ['password']))
+                return res.status(200).json(updated)
             
 
             return res.status(500).json({server_error: "couldn't update resource"})

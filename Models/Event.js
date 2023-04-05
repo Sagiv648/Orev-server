@@ -26,6 +26,5 @@ new Schema({
         required: true
     },
     description: String,
-    email_sending: Boolean
 }))
 

@@ -13,13 +13,17 @@ profileRouter.get('/',async (req,res) => {
     let details;
     try {
         details = await users.findById(id)
-        const requests = await mentor_request.find({associateUser: id})
-        const output = {user : documentToObject(details, ['password']),
-                        mentor_requests: requests.map(x => documentToObject(x, ['associateUser']))}
-        if(output)
-            return res.status(200).json(output)
+        .select('-__v')
+        .select('-password')
 
-        return res.status(400).json({user_error: "doesn't exist"})
+        const requests = await mentor_request.find({associateUser: id})
+        .select('-associateUser')
+        .select('-__v')
+
+        const output = {user: details,
+                        mentor_requests: requests}
+        return res.status(200).json(output)                
+        
     } catch (error) {
         return res.status(500).json({s_error: "an error occured with the server"})
     }
@@ -40,10 +44,10 @@ profileRouter.put('/',async (req,res) => {
         try 
         {
             const updated = await user.findByIdAndUpdate(id,body,{returnDocument: 'after'})
-            if(updated)
-                return res.status(200).json(documentToObject(updated, ['password']))
-
-            return res.status(500).json({server_error: "couldn't update resource"})
+            .select('-__v')
+            .select('-password')
+            return res.status(200).json(updated)
+            
         } 
         catch (error) 
         {
