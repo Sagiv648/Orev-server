@@ -43,6 +43,14 @@ profileRouter.put('/',async (req,res) => {
         
         try 
         {
+            const {email} = req.body;
+            const exists = await user.findOne({email: email}).select('id')
+            if(exists && exists.id != id)
+                return res.status(400).json({exists: "exists"})
+           
+            
+
+
             const updated = await user.findByIdAndUpdate(id,body,{returnDocument: 'after'})
             .select('-__v')
             .select('-password')
