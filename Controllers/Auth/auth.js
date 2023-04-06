@@ -8,7 +8,7 @@ env.config()
 
 export const auth = (req,res,next) => {
     
-    if(!req.headers.authorization.startsWith("Bearer"))
+    if(!req.headers.authorization || !req.headers.authorization.startsWith("Bearer"))
         return res.status(400).json({error: "no token"})
 
     const authHeader = req.headers.authorization

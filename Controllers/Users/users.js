@@ -15,7 +15,7 @@ usersRouter.get('/', async(req,res) => {
         if(last_name)
             query["last_name"] = {$regex: last_name}
 
-    
+        console.log(req.query);
         try 
         {
             const usersByQuery = await User.find(query)
