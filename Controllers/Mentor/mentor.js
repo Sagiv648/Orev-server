@@ -82,15 +82,15 @@ mentorRouter.get('/industries', async (req,res) => {
 
 mentorRouter.post('/', async (req,res) => {
 
-    const {industry,message} = req.body
+    const {industry,message, contact_info} = req.body
     const {id} = req.data
 
-    if(id && industry)
+    if(id && industry && contact_info)
     {
         try 
         {
-            const created = await mentor_request.create(message ? {associateUser: id, industry: industry, message: message}
-                : {associateUser: id, industry: industry})
+            const created = await mentor_request.create(message ? {associateUser: id, industry: industry, message: message, contact_info: contact_info}
+                : {associateUser: id, industry: industry, contact_info: contact_info})
 
             return res.status(201).json(created)
             
