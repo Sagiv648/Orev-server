@@ -1,13 +1,5 @@
-import mongoose from "mongoose";
-import dotenv from 'dotenv'
-import express from 'express'
 import bodyParser from 'body-parser'
-import dbContext from "./config/dbContext.js";
-import https from 'https'
-import http from 'http'
-import certifcate from "./config/certifcate.js";
 import jwt from 'jsonwebtoken'
-import { exit } from "process";
 import users from './Models/user.js'
 import { auth, emailAuth, passwordRestorationAuth, adminAuth, adminAccessAuth } from "./Controllers/Auth/auth.js";
 import profileRouter from "./Controllers/Profile/profile.js";
@@ -20,14 +12,9 @@ import mentorRouter from "./Controllers/Mentor/mentor.js";
 import admin from "./Models/admin.js";
 import event from "./Models/event.js";
 import cron from 'node-cron'
-import { __dirname, sendEmail,readFileSync,randomBytes, documentToObject } from "./utils.js";
+import { __dirname, sendEmail,readFileSync,randomBytes } from "./utils.js";
 import cors from 'cors'
-
-
-const app = express()
-dotenv.config()
-dbContext()
-
+import app from "./config/networkConfig.js";
 
 //authorization: Bearer [token]
 cron.schedule(' 0 0 * * 0', async () => {
@@ -283,24 +270,4 @@ app.use((req,res) => {
     return res.status(404).json({Error: "Resource not found"})
 })
 
-mongoose.connection.once('open', () => {
-
-    try {
-
-        https.createServer(certifcate, app).listen(process.env.PORT | 443)
-        http.createServer(app).listen(process.env.PORT | 80)
-        
-    } catch (error) {
-        //TODO: CONNECTION ERROR
-        console.log(`Error at:\n${error.message}`);
-        exit()
-    }
-    
-})
-
-mongoose.connection.on('error', (err) => {
-    //TODO: CONNECTION ERROR
-    console.log(err);
-    exit()
-})
 

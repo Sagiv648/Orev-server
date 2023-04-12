@@ -50,6 +50,7 @@ mentorRouter.put('/acceptrequest', mentorAuth, async (req,res) => {
         {
             const updated = await mentor_request.findByIdAndUpdate(id, {status : "HANDLED"}, {returnDocument: 'after'})
             .populate('associateUser', '-password -__v')
+            mentor_request.emit("updated", updated)
 
             return res.status(200).json(updated)
             
@@ -101,7 +102,6 @@ mentorRouter.post('/', async (req,res) => {
         }
     }
     return res.status(400).json({user_error: "invalid fields"})
-
 
 })
 
