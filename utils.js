@@ -65,10 +65,6 @@ export const sendEmail = async (params) => {
             html = fs.readFileSync(`${__dirname}/html/passwordRestorationEmail/index.html`).toString().replace('[$passwordRestorationPlacehoder$]', params.resetEndpoint)
             break;
 
-        case '/verifypasswordrestoration':
-            html = fs.readFileSync(`${__dirname}/html/passwordResetEmail/index.html`).toString().replace('[$generatedPasswordPlaceholder$]', params.generated_password)
-            break;
-
         default:
             params.err = "invalid origin"
             return false

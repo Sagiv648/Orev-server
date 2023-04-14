@@ -128,40 +128,9 @@ app.post('/login', async (req,res) => {
 })
 
 app.get('/verifypasswordrestoration', passwordRestorationAuth, async (req,res) => {
-
-    const {email} = req.data;
-    const generated_password = randomBytes(7).toString("hex");
-    const hashed_password = generated_password;
-    const url = req.url.split("?token")
-    
-    try {
-        const updated = await users.findOneAndUpdate({email: email}, {password: hashed_password}, {returnDocument: 'after'})
         
-        if(updated)
-        {
-
-            const emailParams = {origin: url[0], target_email: email, generated_password: generated_password, err: ""}
-            const emailSent = await sendEmail(emailParams)
-            if(emailSent){
-                const html = readFileSync(`${__dirname}/html/passwordReset/index.html`).toString();
-                return res.status(200).send(html)
-            }
-                
-            else if(emailParams.err == "EENVELOPE")
-                return res.status(400).json({user_error: "invalid email"})
-
-            else if(emailParams.err == "invalid origin")
-                return res.status(400).json({user_error: "invalid email sending origin"})
-            
-        }
-        return res.status(500).json({server_error: "couldn't send an email"})
-    } catch (err) {
-        console.log(err.message);
-        return res.status(500).json({server_error: "a problem occured with the server"})
-    }
-
-    //const hashed_password = await bcryptjs.hash(generated_password,10);
-    
+    console.log(req.data);
+   
 })
 
 app.post('/passwordrestoration', async (req,res) => {
@@ -172,8 +141,11 @@ app.post('/passwordrestoration', async (req,res) => {
         if(!user)
             return res.status(400).json({error: "doesn't exist"})
 
+        const generated_code = randomBytes(7).toString("hex");
+
         const toEmailTokenize = {
-            email: email
+            email: email,
+            code: generated_code
         }
 
         const emailToken = jwt.sign(toEmailTokenize,process.env.PASSWORD_RESTORATION_SECRET,{expiresIn: '24h'})

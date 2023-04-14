@@ -41,27 +41,27 @@ mentorRouter.get('/requests', mentorAuth, async (req,res) => {
     }
 })
 
-mentorRouter.put('/acceptrequest', mentorAuth, async (req,res) => {
-    const {id} = req.body
+// mentorRouter.put('/acceptrequest', mentorAuth, async (req,res) => {
+//     const {id} = req.body
 
-    if(id)
-    {
-        try 
-        {
-            const updated = await mentor_request.findByIdAndUpdate(id, {status : "HANDLED"}, {returnDocument: 'after'})
-            .populate('associateUser', '-password -__v')
-            mentor_request.emit("updated", updated)
+//     if(id)
+//     {
+//         try 
+//         {
+//             const updated = await mentor_request.findByIdAndUpdate(id, {status : "HANDLED"}, {returnDocument: 'after'})
+//             .populate('associateUser', '-password -__v')
+//             mentor_request.emit("updated", updated)
 
-            return res.status(200).json(updated)
+//             return res.status(200).json(updated)
             
-        } 
-        catch (error) 
-        {
-            return res.status(500).json({server_error: "error occured with the server"})
-        }
-    }
-    return res.status(400).json({user_error: "invalid fields"})
-})
+//         } 
+//         catch (error) 
+//         {
+//             return res.status(500).json({server_error: "error occured with the server"})
+//         }
+//     }
+//     return res.status(400).json({user_error: "invalid fields"})
+// })
 
 mentorRouter.get('/industries', async (req,res) => {
 

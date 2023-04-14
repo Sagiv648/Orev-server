@@ -229,6 +229,7 @@
       height: 20px;
       margin: 0 8px 10px 8px;
       padding: 0;
+
     }
     /* Data table ------------------------------ */
     
@@ -428,6 +429,7 @@
       supported-color-schemes: light dark;
     }
     </style>
+    
     <!--[if mso]>
     <style type="text/css">
       .f-fallback  {
@@ -437,6 +439,12 @@
   <![endif]-->
   </head>
   <body>
+    <script>
+      function test()
+      {
+        console.log("this is a test");
+      }
+    </script>
     <span class="preheader">Use this link to reset your password. The link is only valid for 24 hours.</span>
     <table class="email-wrapper" width="100%" cellpadding="0" cellspacing="0" role="presentation">
       <tr>
@@ -471,8 +479,14 @@
                               <table width="100%" border="0" cellspacing="0" cellpadding="0" role="presentation">
                                 <tr>
                                   <td align="center">
-                                    <a href="[$passwordRestorationPlacehoder$]" class="f-fallback button button--green" target="_blank">Type here to generate a password.</a>
+                                    
+                                    <button 
+                                    onclick="test()"
+                                    class="f-fallback button button--green">Type here to generate a password.</button>
                                   </td>
+                                  <!-- <a 
+                                    onclick="test"
+                                    href="[$passwordRestorationPlacehoder$]" class="f-fallback button button--green" target="_blank">Type here to generate a password.</a> -->
                                 </tr>
                               </table>
                             </td>

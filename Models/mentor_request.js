@@ -14,10 +14,10 @@ export default model('mentor_request', new Schema({
         required: true
     },
     message: String,
-    status: {
-        type: String,
-        default: "OPEN"
-    },
+    // status: {
+    //     type: String,
+    //     default: "OPEN"
+    // },
     contact_info: {
         
         contact_type: {
